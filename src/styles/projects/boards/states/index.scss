@@ -1,0 +1,17 @@
+.state--column {
+  @apply w-[280px] h-full bg-gray-extra-light rounded-lg flex flex-col;
+
+  &__head {
+    @apply flex items-center justify-between p-2 border-b border-b-gray-extra;
+
+    &--text {
+      @apply font-medium;
+    }
+  }
+
+  &__list {
+    padding: 4px;
+    flex-grow: 1;
+    overflow: hidden auto;
+  }
+}

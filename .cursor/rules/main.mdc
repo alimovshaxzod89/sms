@@ -1,0 +1,447 @@
+---
+alwaysApply: true
+---
+# School Management System - Vue.js Architecture Rules
+
+## Tech Stack & Libraries
+
+### Core Framework
+- **Always use Vue 3** with Composition API (`<script setup>` syntax)
+- **Always use Vite** as the build tool (v5.2.0+)
+- **Always use Pinia** (v2.1.7+) for state management - NEVER use Vuex
+- **Always use Vue Router 4** for routing
+- **Always use Ant Design Vue 4** as the primary UI component library
+- **Always use Tailwind CSS 3** for utility-first styling
+- **Always use SCSS** for component-scoped styles and global stylesheets
+- **Always use Axios** (v1.7.2+) for HTTP requests
+- **Always use Vue I18n** (v9.13.1+) for internationalization
+- **Always use Day.js** (v1.11.11+) for date manipulation
+- **Always use unplugin-vue-components** for auto-importing Ant Design Vue components
+
+### Additional Libraries
+- Use `apexcharts` and `vue3-apexcharts` for charts
+- Use `crypto-js` for encryption when needed
+- Use `@ckeditor/ckeditor5-vue` for rich text editing
+
+## Project Structure
+
+### Directory Hierarchy
+```
+src/
+├── components/          # Reusable components
+│   ├── base-components/ # Base UI components (BaseButton, BaseTable, etc.)
+│   ├── icon/           # Icon components (PascalCase naming)
+│   ├── layouts/        # Layout components (navbar, sidebar-menu)
+│   └── ui/             # Feature-specific UI components
+├── pages/              # Page components organized by feature
+│   └── dashboard/      # Dashboard pages
+│       ├── Client/     # Admin/Client pages
+│       └── Employee/   # Employee pages
+├── store/              # Pinia stores (use .pinia.js extension)
+├── composables/        # Composable functions (use camelCase with 'use' prefix)
+├── services/           # API service layer
+│   └── modules/        # Service modules organized by feature
+├── utils/              # Utility functions
+│   ├── api/            # API configuration and interceptors
+│   ├── helpers/        # Helper functions
+│   ├── i18n/           # Internationalization configuration
+│   └── ant/            # Ant Design theme configuration
+├── routers/            # Router configuration
+└── styles/             # Global styles (SCSS)
+    ├── features/       # Feature-specific styles
+    └── responsive/     # Responsive styles
+```
+
+### Path Aliases
+- **Always use** `@/` for `src/` directory
+- **Always use** `@components/` for `src/components/` directory
+- **Always use** `@composables/` for `src/composables/` directory
+
+## Naming Conventions
+
+### Files & Components
+- **Components**: PascalCase (e.g., `BaseButton.vue`, `Employees.vue`, `PageHeaderComponent.vue`)
+- **Stores**: kebab-case with `.pinia.js` extension (e.g., `core.pinia.js`, `user.pinia.js`, `employees.pinia.js`)
+- **Composables**: camelCase with `use` prefix (e.g., `useQueryParams.js`, `useRouterHistoryCounter.js`)
+- **Services**: camelCase with `.service.js` extension (e.g., `projects.service.js`, `boards.service.js`)
+- **Pages**: PascalCase (e.g., `Employees.vue`, `DashboardView.vue`)
+- **Utilities**: camelCase (e.g., `index.js`, `theme.js`)
+- **Styles**: kebab-case with `.scss` extension (e.g., `main.scss`, `global.scss`)
+
+### Variables & Functions
+- **Variables**: camelCase (e.g., `employeesSearch`, `employeeStatus`, `departmentsList`)
+- **Functions**: camelCase (e.g., `getAllEmployees`, `handleSearch`, `routerQuery`)
+- **Constants**: UPPER_SNAKE_CASE (e.g., `VITE_APP_BASE_URL`)
+- **Store names**: camelCase with `use` prefix (e.g., `useCore`, `useEmployee`, `useUser`)
+
+### Route Names
+- **Always use** PascalCase for route names (e.g., `EmployeesView`, `EmployeeFormAdd`, `MyStatistics`)
+
+## Component Patterns
+
+### Script Setup Syntax
+- **Always use** `<script setup>` syntax for new components
+- **Never use** Options API unless maintaining existing components that use it
+- **Always import** Vue composables from 'vue' (ref, computed, watch, onMounted, etc.)
+
+### Props Definition
+```vue
+<script setup>
+const props = defineProps({
+  title: String,
+  loading: {
+    type: [Array, String, Boolean],
+    default: false
+  },
+  // Always provide type, default, and validator when needed
+})
+</script>
+```
+
+### Emits Definition
+```vue
+<script setup>
+const emits = defineEmits(['clickRow', 'changePage', 'viewRow', 'editRow', 'deleteRow'])
+</script>
+```
+
+### Component Structure Order
+1. **Script section** (`<script setup>`)
+2. **Template section** (`<template>`)
+3. **Style section** (`<style lang="scss" scoped>`)
+
+### Business Logic
+- **Extract complex logic** to composables when it's reusable
+- **Keep component-specific logic** inside the component
+- **Use Pinia stores** for shared state and API calls
+- **Never put API calls directly in components** - always use stores or services
+
+### Component Imports
+- **Always import** components using path aliases (`@components/`, `@/`)
+- **Always import** icons from `@components/icon/`
+- **Always import** base components from `@components/base-components/`
+
+## State Management (Pinia)
+
+### Store Structure
+- **Always use** `defineStore()` with Options API syntax
+- **Store naming**: `useStoreName` pattern (e.g., `useCore`, `useEmployee`, `useUser`)
+- **File naming**: `store-name.pinia.js` (kebab-case with `.pinia.js` extension)
+
+### Store Pattern
+```javascript
+import {defineStore} from 'pinia'
+import {api} from '@/utils/api/index.js'
+import useCore from '@/store/core.pinia.js'
+
+const useStoreName = defineStore('storeName', {
+    state: () => ({
+        // State properties
+    }),
+    getters: {
+        // Computed properties
+    },
+    actions: {
+        // Methods
+    }
+})
+
+export default useStoreName
+```
+
+### Core Store Usage
+- **Always use** `useCore()` store for:
+  - Loading state management (`loadingUrl` Set)
+  - Toast notifications (`setToast()`)
+  - Redirects (`redirect()`)
+  - Drawer management (`openDrawer()`, `closeDrawer()`)
+  - Picture viewer (`openPictureViewer()`, `closePictureViewer()`)
+  - Breadcrumb management
+  - File uploads (`fileUpload()`)
+
+### Loading State Management
+- **Always use** `core.loadingUrl.add('endpoint/name')` before API calls
+- **Always use** `core.loadingUrl.delete('endpoint/name')` in finally block
+- **Always use** `setLoading()` and `deleteLoading()` from composables for service layer
+
+### Error Handling
+- **Always use** `core.switchStatus(error)` for error handling in catch blocks
+- **Never** handle errors silently - always show toast notifications
+
+## API & Data Fetching
+
+### API Configuration
+- **Always use** the `api()` function from `@/utils/api/index.js`
+- **Never create** direct Axios instances - always use the centralized `api()` wrapper
+- **Always handle** authentication tokens via interceptors (automatic)
+
+### API Call Pattern
+```javascript
+import {api} from '@/utils/api/index.js'
+import useCore from '@/store/core.pinia.js'
+
+const core = useCore()
+core.loadingUrl.add('endpoint/name')
+
+api({
+    url: 'endpoint',
+    method: 'GET', // or 'POST', 'PUT', 'DELETE'
+    params: {}, // for GET requests
+    data: {}, // for POST/PUT requests
+})
+    .then(({data}) => {
+        // Handle success
+    })
+    .catch((error) => {
+        core.switchStatus(error)
+    })
+    .finally(() => {
+        core.loadingUrl.delete('endpoint/name')
+    })
+```
+
+### Service Layer
+- **Create service files** in `src/services/modules/{feature}/` directory
+- **Service files** should export an object with methods
+- **Always use** `setLoading()` and `deleteLoading()` from `@composables` in services
+- **Always use** `core.switchStatus(error)` for error handling
+
+### Service Pattern
+```javascript
+import {api} from "@/utils/api/index.js";
+import {deleteLoading, setLoading} from "@composables";
+import useCore from "@/store/core.pinia.js";
+
+export default {
+    getAllItems({page = 0, size = 10, search} = {}) {
+        const core = useCore();
+        setLoading('items/all')
+        
+        api({
+            url: 'items',
+            params: { page, size, search }
+        })
+            .then(({data}) => {
+                // Handle data
+            })
+            .catch((error) => {
+                core.switchStatus(error)
+            })
+            .finally(() => {
+                deleteLoading('items/all')
+            })
+    }
+}
+```
+
+### Request Headers
+- **Authorization token** is automatically added via interceptors
+- **O-Session header** is automatically added for organization context
+- **Never manually add** Authorization header unless using `open: true` flag
+
+## Routing
+
+### Route Definition
+- **Always use** lazy loading with `() => import()` for route components
+- **Always define** route names in PascalCase
+- **Always use** nested routes for feature organization
+- **Always add** `meta` object for route metadata (role, notWorking, etc.)
+
+### Route Guard Pattern
+```javascript
+beforeEnter: (to, from, next) => {
+    const userRole = localStorage.getItem('org_store_role')
+    if (userRole === to.meta?.role) {
+        return next();
+    } else {
+        return next({path: ''})
+    }
+}
+```
+
+### Router Factory
+- **Always use** router factory pattern for i18n integration
+- **Always set** document title from i18n in `beforeEach` guard
+
+### Route Organization
+- **Group routes** by feature (Employee, Client/Admin)
+- **Use nested routes** for sub-features
+- **Always provide** redirect for parent routes when needed
+
+## Styling
+
+### Tailwind CSS
+- **Always use** Tailwind utility classes for styling
+- **Always use** custom color palette defined in `tailwind.config.js`
+- **Never use** inline styles - prefer Tailwind classes
+- **Use custom colors**: `blue`, `green`, `danger`, `gray`, `yellow`, etc.
+
+### SCSS
+- **Always use** `<style lang="scss" scoped>` for component styles
+- **Use global SCSS** files in `src/styles/` for shared styles
+- **Always use** `:deep()` selector for styling child components when needed
+
+### Responsive Design
+- **Always consider** mobile responsiveness
+- **Use Tailwind** responsive breakpoints
+- **Check** `core.collapsed` state for sidebar behavior
+
+## Internationalization (i18n)
+
+### Translation Usage
+- **Always use** `useI18n()` composable in components
+- **Always use** `t('key')` function for translations
+- **Always define** translation keys in route names (e.g., `Employees.pageTitle`)
+- **Support** multiple locales (uz, ru)
+
+### Translation Pattern
+```vue
+<script setup>
+import {useI18n} from "vue-i18n";
+
+const {t} = useI18n()
+</script>
+
+<template>
+  <div>{{ t('Employees.pageTitle') }}</div>
+</template>
+```
+
+## Date Handling
+
+### Day.js Usage
+- **Always use** Day.js for date manipulation
+- **Always use** UTC plugin for server communication
+- **Always set** locale to 'uz-latn' by default
+- **Use helper functions** from `@/utils/helpers/` for date formatting
+
+## Composables
+
+### Composable Pattern
+- **Always prefix** composable functions with `use` (e.g., `useQueryParams`, `useRouterHistoryCounter`)
+- **Always export** composables from `@composables/index.js` for centralized access
+- **Use composables** for reusable logic (query params, router history, storage, etc.)
+
+### Common Composables
+- `useQueryParams()` - for route query parameter management
+- `useRouterHistoryCounter()` - for router history tracking
+- `setLocaleStorage()` - for localStorage operations
+- `phoneCodeValidator()` - for phone number validation
+- `setLoading()` / `deleteLoading()` - for loading state management
+
+## Component Best Practices
+
+### Base Components
+- **Always use** base components from `@components/base-components/`:
+  - `BaseButton` - for buttons
+  - `BaseTable` - for tables
+  - `BaseDatePicker` - for date selection
+  - `BaseDrawer` - for drawers
+  - `BaseModal` - for modals
+  - `BaseCardPicker` - for card selection
+  - `BaseTag` - for tags
+
+### Icon Components
+- **Always use** icon components from `@components/icon/`
+- **Icons are** Vue components, not SVG imports
+- **Use PascalCase** for icon component names (e.g., `IconPlus`, `IconEdit`, `IconTrash`)
+
+### Page Components
+- **Always use** `PageHeaderComponent` for page headers
+- **Always use** `LoaderComponent` for loading states
+- **Always use** `ScrollbarComponent` for scrollable content
+
+### Form Handling
+- **Always use** Ant Design Vue form components
+- **Always validate** forms before submission
+- **Always show** loading state during form submission
+- **Always show** success/error toasts after form actions
+
+## Code Quality
+
+### Import Organization
+1. Vue core imports
+2. Vue Router imports
+3. Pinia imports
+4. Third-party library imports
+5. Store imports
+6. Component imports
+7. Utility/composable imports
+8. Style imports (if any in script)
+
+### Error Handling
+- **Always handle** errors in catch blocks
+- **Always use** `core.switchStatus(error)` for API errors
+- **Never** leave catch blocks empty
+- **Always show** user-friendly error messages
+
+### Performance
+- **Always use** `debounce` for search inputs (from `@/utils/helpers/`)
+- **Always use** lazy loading for routes
+- **Always use** computed properties for derived state
+- **Always use** `storeToRefs()` when destructuring from Pinia stores
+
+### Code Comments
+- **Add comments** for complex business logic
+- **Use Uzbek or English** for comments based on team preference
+- **Document** non-obvious code patterns
+
+## File Organization
+
+### Feature-Based Organization
+- **Group related files** by feature (e.g., employees, departments, statistics)
+- **Keep components close** to where they're used
+- **Share common components** in `@components/` directory
+
+### Page Structure
+- **Main page component** in feature folder (e.g., `Employees.vue`)
+- **Sub-components** in `components/` subfolder
+- **Modules** in `modules/` subfolder for nested features
+- **Forms** with `Form` suffix (e.g., `EmployeeForm.vue`)
+
+## Testing & Development
+
+### Development Server
+- **Always use** `npm run dev` or `pnpm dev` for development
+- **Server runs** on port 3000
+- **API proxy** configured in `vite.config.js`
+
+### Build
+- **Always use** `npm run build` or `pnpm build` for production
+- **Output** goes to `dist/` directory
+
+## Security
+
+### Authentication
+- **Always check** `access_token` in localStorage for protected routes
+- **Always use** token refresh mechanism via interceptors
+- **Never expose** tokens in client-side code
+- **Always validate** user roles before showing content
+
+### Data Validation
+- **Always validate** user input on both client and server
+- **Always sanitize** data before sending to API
+- **Always use** proper HTTP methods (GET, POST, PUT, DELETE)
+
+## School Management System Specific
+
+### Domain Entities
+- Students, Teachers, Classes, Subjects, Grades, Attendance, etc.
+- **Follow the same patterns** as Employee/Department/Position in current codebase
+- **Create stores** for each major entity (e.g., `students.pinia.js`, `classes.pinia.js`)
+- **Create services** for API calls (e.g., `students.service.js`, `attendance.service.js`)
+
+### Role-Based Access
+- **Implement** role-based routing similar to Employee/ORG_ADMIN pattern
+- **Use meta.role** in routes for access control
+- **Check roles** in `beforeEnter` guards
+
+### Dashboard Structure
+- **Follow** the same layout pattern as current DashboardView
+- **Use** SidebarMenu and NavbarComponent for navigation
+- **Organize** pages by user role (Admin, Teacher, Student, Parent)
+
+---
+
+**Remember**: These rules are based on the existing codebase architecture. Always follow these patterns to maintain consistency and scalability in the School Management System project.
+

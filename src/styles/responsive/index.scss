@@ -1,0 +1,18 @@
+@import "../breakpoints";
+@import "layout-responsive";
+
+.isMobile {
+  display: block !important;
+
+  @include responsive-md {
+    display: none !important;
+  }
+}
+
+.isNotMobile {
+  display: none !important;
+
+  @include responsive-md {
+    display: block !important;
+  }
+}
