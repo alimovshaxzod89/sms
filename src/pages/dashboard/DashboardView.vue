@@ -23,6 +23,6 @@ import Menu from '@/components/layouts/sidebar-menu/SidebarMenu.vue';
 
 </script>
 
-<style lang="scss" scoped>
+<style scoped>
 
 </style>

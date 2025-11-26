@@ -18,7 +18,7 @@ defineProps({
   ></div>
 </template>
 
-<style scoped lang="scss">
+<style scoped>
 .large {
   width: 64px;
   height: 64px;

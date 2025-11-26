@@ -1,0 +1,9 @@
+:root {
+  --breakpoint-sm: 576px;
+  --breakpoint-md: 768px;
+  --breakpoint-lg: 992px;
+  --breakpoint-xl: 1200px;
+  --breakpoint-xxl: 1600px;
+}
+
+/* Media query mixins ga CSS utility classlar bilan almashtirish mumkin yoki to'g'ridan-to'g'ri media query ishlatish mumkin */

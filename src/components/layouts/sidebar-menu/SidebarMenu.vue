@@ -159,6 +159,6 @@ function handleClickMenu({item}) {
 }
 </script>
 
-<style lang="scss" scoped>
-@import "@/styles/features/sidebar-menu.scss";
+<style scoped>
+/* sidebar-menu.css endi main.css orqali yuklanadi */
 </style>

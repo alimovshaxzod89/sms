@@ -31,4 +31,4 @@ import IconComment from '@/components/icon/IconComment.vue';
 import IconAnnouncement from '@/components/icon/IconAnnouncement.vue';
 </script>
 
-<style lang="scss" scoped></style>
+<style scoped></style>

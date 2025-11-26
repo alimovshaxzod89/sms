@@ -1,6 +1,6 @@
 import {createApp} from 'vue';
 import 'ant-design-vue/dist/reset.css';
-import '@/styles/main.scss';
+import '@/styles/main.css';
 import {createPinia} from "pinia";
 
 // import i18nFactory from '@/utils/i18n';

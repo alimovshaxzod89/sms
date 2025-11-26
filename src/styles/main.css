@@ -4,11 +4,15 @@
 @tailwind utilities;
 
 /** IMPORT Style modules **/
-// @import "mixins";
-// @import "ant";
-// @import "global";
-// @import "responsive";
-// @import "projects/boards/states";
+@import "./variable.css";
+@import "./breakpoints.css";
+@import "./mixins.css";
+@import "./ant.css";
+@import "./global.css";
+@import "./responsive/index.css";
+@import "./responsive/layout-responsive.css";
+@import "./features/sidebar-menu.css";
+@import "./projects/boards/states/index.css";
 
 /** Main Styles **/
 body {
@@ -42,3 +46,4 @@ a:hover, .ant-btn-link:hover {
 svg {
   display: inline;
 }
+

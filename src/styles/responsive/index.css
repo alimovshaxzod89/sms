@@ -1,18 +1,20 @@
-@import "../breakpoints";
-@import "layout-responsive";
-
 .isMobile {
   display: block !important;
+}
 
-  @include responsive-md {
+@media (min-width: 768px) {
+  .isMobile {
     display: none !important;
   }
 }
 
 .isNotMobile {
   display: none !important;
+}
 
-  @include responsive-md {
+@media (min-width: 768px) {
+  .isNotMobile {
     display: block !important;
   }
 }
+

@@ -1,0 +1,27 @@
+.state--column {
+  width: 280px;
+  height: 100%;
+  background-color: #f0ecfd;
+  border-radius: 0.5rem;
+  display: flex;
+  flex-direction: column;
+}
+
+.state--column__head {
+  display: flex;
+  align-items: center;
+  justify-content: space-between;
+  padding: 0.5rem;
+  border-bottom: 1px solid #D6DAE1;
+}
+
+.state--column__head--text {
+  font-weight: 500;
+}
+
+.state--column__list {
+  padding: 4px;
+  flex-grow: 1;
+  overflow: hidden auto;
+}
+
