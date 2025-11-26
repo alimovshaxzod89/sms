@@ -151,14 +151,16 @@ const pages = reactive([
   },
 ])
 
+const emit = defineEmits(['menu-click'])
+
 function handleClickMenu({item}) {
   const {path, name} = item;
   if (name !== route.name) {
     router.push(`/dashboard/${path}`)
   }
+  emit('menu-click')
 }
 </script>
 
 <style scoped>
-/* sidebar-menu.css endi main.css orqali yuklanadi */
 </style>
