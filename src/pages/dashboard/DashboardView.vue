@@ -1,16 +1,16 @@
 <template>
   <a-layout class="h-screen">
-    <!-- Desktop Sidebar (faqat lg va kattaroqda) -->
+    <!-- Desktop Sidebar -->
     <a-layout-sider
       v-model:collapsed="collapsed"
-      :trigger="null"
+      :trigger="undefined"
       collapsible
       :collapsed-width="80"
       :width="200"
-      class="!bg-white border-r border-gray-200 hidden lg:block"
+      class="!bg-white mb-10 border-r border-gray-200 hidden lg:block overflow-scroll"
     >
       <!-- Logo Section -->
-      <div class="p-[1.21rem] flex items-center justify-center gap-2 border-b border-gray-200">
+      <div class="p-[1.11rem] flex items-center justify-center gap-2 border-b border-gray-200">
         <router-link to="/" class="flex items-center justify-center gap-2">
           <img src="@/assets/vue.svg" alt="logo" class="w-6">
           <span v-if="!collapsed" class="text-lg text-black font-semibold">SMS</span>
@@ -21,14 +21,14 @@
       <SidebarMenu />
     </a-layout-sider>
 
-    <!-- Mobile Drawer Sidebar (faqat lg dan kichikda) -->
+    <!-- Mobile Drawer Sidebar -->
     <a-drawer
       v-model:open="drawerVisible"
       placement="left"
       :closable="false"
       :width="200"
       :body-style="{ padding: 0 }"
-      class="lg:hidden"
+      class="lg:hidden overflow-scroll"
     >
       <div class="bg-white h-full">
         <!-- Logo Section -->
@@ -64,24 +64,21 @@ import { ref } from 'vue';
 import NavbarComponent from '@/components/layouts/navbar/NavbarComponent.vue';
 import SidebarMenu from '@/components/layouts/sidebar-menu/SidebarMenu.vue';
 
-// Desktop sidebar collapsed holati
+// Desktop sidebar collapsed state
 const collapsed = ref(false);
 
 // Mobile drawer visibility
 const drawerVisible = ref(false);
 
-// Toggle sidebar (desktop va mobile uchun)
+// Toggle sidebar (for desktop and mobile)
 const toggleSidebar = () => {
-  // Mobile da drawer ni toggle qilish
+  // Toggle drawer on mobile
   drawerVisible.value = !drawerVisible.value;
-  
-  // Desktop da collapsed ni toggle qilish (ixtiyoriy)
-  // collapsed.value = !collapsed.value;
 };
 </script>
 
 <style scoped>
-/* Ant Design default padding va background uchun override */
+/* Ant Design default padding and background override */
 :deep(.ant-layout-header) {
   height: auto;
   line-height: normal;
@@ -92,7 +89,7 @@ const toggleSidebar = () => {
   flex-direction: column;
 }
 
-/* Drawer uchun stil */
+/* Drawer style */
 :deep(.ant-drawer-body) {
   background-color: white;
 }
