@@ -1,5 +1,5 @@
 <template>
-  <a-layout-header class="flex items-center justify-between p-2 !bg-white">
+  <a-layout-header class="flex items-center justify-between p-4 !bg-white">
     <!-- Burger Menu (only mobile) -->
     <a-button 
       type="text" 
@@ -10,7 +10,7 @@
     </a-button>
 
     <!-- Search Bar -->
-    <div class="hidden md:flex items-center gap-2 bg-[#F7F8FA] border border-gray-200 rounded-md p-2 flex-1 lg:flex-none max-w-md ml-4 lg:ml-0">
+    <div class="hidden md:flex items-center gap-2 bg-[#F7F8FA] border border-gray-200 rounded-md px-2 flex-1 lg:flex-none max-w-md ml-4 lg:ml-0">
       <IconSearch />
       <a-input 
         v-model:value="searchValue" 

@@ -4,15 +4,7 @@
 @tailwind utilities;
 
 /** IMPORT Style modules **/
-@import "./variable.css";
-@import "./breakpoints.css";
-@import "./mixins.css";
 @import "./ant.css";
-@import "./global.css";
-@import "./responsive/index.css";
-@import "./responsive/layout-responsive.css";
-@import "./features/sidebar-menu.css";
-@import "./projects/boards/states/index.css";
 
 /** Main Styles **/
 body {
