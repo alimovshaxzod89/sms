@@ -1,34 +1,79 @@
 <template>
-  <div class="flex gap-4 flex-col md:flex-row p-4">
-    <!-- Left Side -->
-     <div class="w-full lg:w-2/3">
-        <div class="flex gap-4 justify-between flex-wrap">
-          <UserCard type="student" />
-          <UserCard type="teacher" />
-          <UserCard type="parent" />
-          <UserCard type="staff" />
-        </div>
-        <div class="flex flex-col lg:flex-row gap-4">
-          <CountChart />
-          <AttendanceChart />
-        </div>
-        <FinanceChart />
-     </div>
-     <!-- Right Side -->
-     <div class="w-full lg:w-1/3">
-      <EventCalendar />
-      <Announcements />
-     </div>
+  <div class="p-4">
+    <!-- Welcome Alert -->
+    <a-alert
+      message="Admin Dashboard"
+      description="Markaz boshqaruv tizimiga xush kelibsiz. Umumiy statistika va ma'lumotlar."
+      type="info"
+      show-icon
+      closable
+      class="mb-4"
+    />
+
+    <!-- Main Content with Loading -->
+    <a-spin :spinning="loading" tip="Yuklanmoqda...">
+      <a-row :gutter="[16, 16]">
+        <!-- Left Side - Statistics and Charts -->
+        <a-col :xs="24" :lg="16">
+          <a-space direction="vertical" :size="16" style="width: 100%">
+            <!-- User Statistics Cards -->
+            <a-row :gutter="[16, 16]">
+              <a-col :xs="24" :sm="12" :lg="6">
+                <UserCard type="student" :count="120" />
+              </a-col>
+              <a-col :xs="24" :sm="12" :lg="6">
+                <UserCard type="teacher" :count="6" />
+              </a-col>
+              <a-col :xs="24" :sm="12" :lg="6">
+                <UserCard type="parent" :count="120" />
+              </a-col>
+              <a-col :xs="24" :sm="12" :lg="6">
+                <UserCard type="staff" :count="10" />
+              </a-col>
+            </a-row>
+
+            <!-- Charts Row -->
+            <a-row :gutter="[16, 16]">
+              <a-col :xs="24" :lg="12">
+                <CountChart />
+              </a-col>
+              <a-col :xs="24" :lg="12">
+                <AttendanceChart />
+              </a-col>
+            </a-row>
+
+            <!-- Finance Chart -->
+            <a-row>
+              <a-col :span="24">
+                <FinanceChart />
+              </a-col>
+            </a-row>
+          </a-space>
+        </a-col>
+
+        <!-- Right Side - Calendar and Announcements -->
+        <a-col :xs="24" :lg="8">
+          <a-space direction="vertical" :size="16" style="width: 100%">
+            <EventCalendar />
+            <Announcements />
+          </a-space>
+        </a-col>
+      </a-row>
+    </a-spin>
   </div>
 </template>
 
 <script setup>
+import { ref } from 'vue';
 import UserCard from '@/components/UserCard.vue';
 import CountChart from '@/components/CountChart.vue';
 import AttendanceChart from '@/components/AttendanceChart.vue';
 import FinanceChart from '@/components/FinanceChart.vue';
 import EventCalendar from '@/components/EventCalendar.vue';
 import Announcements from '@/components/Announcements.vue';
+
+// Loading state
+const loading = ref(false);
 </script>
 
 <style scoped>

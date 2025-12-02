@@ -1,21 +1,116 @@
 <template>
-  <div class="min-w-[130px] flex-1 rounded-2xl odd:bg-blue-200 even:bg-blue-100 p-4">
-    <div class="flex justify-between items-center">
-        <span class="text-[10px] bg-white rounded-full px-2 py-1 text-blue-500">2024/25</span>
-        <IconMore />
-    </div>
-    <h1 class="text-2xl font-semibold my-4">1,234</h1>
-    <h2 class="capitalize text-sm text-gray-600 font-medium"> {{ type }} </h2>
-  </div>
+  <a-card 
+    :bordered="false" 
+    class="shadow-sm hover:shadow-md transition-shadow"
+    :class="cardColorClass"
+  >
+    <template #title>
+      <a-tag color="blue" class="text-[10px]">2024/25</a-tag>
+    </template>
+    <template #extra>
+      <a-dropdown>
+        <a-button type="text" size="small" shape="circle">
+          <IconMore />
+        </a-button>
+        <template #overlay>
+          <a-menu>
+            <a-menu-item key="1">
+              <IconEye class="w-4 h-4 inline mr-2" />
+              Ko'rish
+            </a-menu-item>
+            <a-menu-item key="2">
+              <IconEdit class="w-4 h-4 inline mr-2" />
+              Tahrirlash
+            </a-menu-item>
+            <a-menu-item key="3">
+              <IconExcel class="w-4 h-4 inline mr-2" />
+              Export
+            </a-menu-item>
+          </a-menu>
+        </template>
+      </a-dropdown>
+    </template>
+
+    <a-statistic
+      :value="count"
+      :value-style="{ color: valueColor }"
+      :title-style="{ color: 'white', fontSize: '12px' }"
+    >
+      <template #title>
+        <span style="color: #666; font-size: 14px; font-weight: 500;">
+          {{ typeLabel }}
+        </span>
+      </template>
+      <template #prefix>
+        <component :is="iconComponent" class="w-5 h-5 ml-2" />
+      </template>
+    </a-statistic>
+  </a-card>
 </template>
 
 <script setup>
+import { computed } from 'vue';
 import IconMore from './icon/IconMore.vue';
+import IconEye from './icon/IconEye.vue';
+import IconEdit from './icon/IconEdit.vue';
+import IconExcel from './icon/IconExcel.vue';
+import IconUser from './icon/IconUser.vue';
+import IconUsers from './icon/IconUsers.vue';
+import IconUsersTwo from './icon/IconUsersTwo.vue';
+import IconPerson from './icon/IconPerson.vue';
+
 const props = defineProps({
   type: {
     type: String,
     required: true,
   },
+  count: {
+    type: Number,
+    default: 1234
+  }
+});
+
+// Type configurations
+const typeConfig = {
+  student: {
+    label: 'O\'quvchilar',
+    color: '#3f8600',
+    cardClass: 'bg-gradient-to-br from-blue-50 to-blue-100',
+    icon: 'IconUsers'
+  },
+  teacher: {
+    label: 'O\'qituvchilar',
+    color: '#cf1322',
+    cardClass: 'bg-gradient-to-br from-purple-50 to-purple-100',
+    icon: 'IconUser'
+  },
+  parent: {
+    label: 'Ota-onalar',
+    color: '#1890ff',
+    cardClass: 'bg-gradient-to-br from-green-50 to-green-100',
+    icon: 'IconUsersTwo'
+  },
+  staff: {
+    label: 'Xodimlar',
+    color: '#faad14',
+    cardClass: 'bg-gradient-to-br from-yellow-50 to-yellow-100',
+    icon: 'IconPerson'
+  }
+};
+
+const config = computed(() => typeConfig[props.type] || typeConfig.student);
+const typeLabel = computed(() => config.value.label);
+const valueColor = computed(() => config.value.color);
+const cardColorClass = computed(() => config.value.cardClass);
+
+const iconComponent = computed(() => {
+  const iconMap = {
+    IconUsers,
+    IconUser,
+    IconUsersTwo,
+    IconPerson
+  };
+  return iconMap[config.value.icon];
 });
 </script>
 

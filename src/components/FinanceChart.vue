@@ -1,22 +1,51 @@
 <template>
-    <div class="w-full bg-white rounded-2xl p-4 mt-3">
+    <a-card :bordered="false" class="shadow-sm">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-6">
-            <h2 class="text-lg font-semibold">{{ title }}</h2>
-            <IconMore class="cursor-pointer" />
-        </div>
+        <template #title>
+            <a-space>
+                <IconBag class="w-5 h-5" />
+                <span>{{ title }}</span>
+            </a-space>
+        </template>
+        <template #extra>
+            <a-dropdown>
+                <a-button type="text" size="small" shape="circle">
+                    <IconMore class="cursor-pointer" />
+                </a-button>
+                <template #overlay>
+                    <a-menu>
+                        <a-menu-item key="1">
+                            <IconEye class="w-4 h-4 inline mr-2" />
+                            Batafsil
+                        </a-menu-item>
+                        <a-menu-item key="2">
+                            <IconExcel class="w-4 h-4 inline mr-2" />
+                            Export
+                        </a-menu-item>
+                        <a-menu-item key="3">
+                            <IconRefresh class="w-4 h-4 inline mr-2" />
+                            Yangilash
+                        </a-menu-item>
+                    </a-menu>
+                </template>
+            </a-dropdown>
+        </template>
 
         <!-- Legend -->
-        <div class="flex justify-center gap-6 mb-6">
-            <div class="flex items-center gap-2">
-                <div class="w-3 h-3 rounded-full bg-[#99CBFA]"></div>
-                <span class="text-sm text-gray-400">income</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="w-3 h-3 rounded-full bg-[#C3EBFA]"></div>
-                <span class="text-sm text-gray-400">expense</span>
-            </div>
-        </div>
+        <a-space class="mb-6" :size="16" style="width: 100%; justify-content: center;">
+            <a-tag color="#99CBFA">
+                <template #icon>
+                    <a-badge color="#99CBFA" />
+                </template>
+                Daromad
+            </a-tag>
+            <a-tag color="#C3EBFA">
+                <template #icon>
+                    <a-badge color="#C3EBFA" />
+                </template>
+                Xarajat
+            </a-tag>
+        </a-space>
 
         <!-- Chart -->
         <div>
@@ -27,18 +56,22 @@
                 :series="series" 
             />
         </div>
-    </div>
+    </a-card>
 </template>
 
 <script setup>
 import { computed } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import IconMore from '@components/icon/IconMore.vue'
+import IconBag from './icon/IconBag.vue'
+import IconEye from './icon/IconEye.vue'
+import IconExcel from './icon/IconExcel.vue'
+import IconRefresh from './icon/IconRefresh.vue'
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'Finance'
+        default: 'Moliya'
     },
     financeData: {
         type: Array,
@@ -65,11 +98,11 @@ const expenseData = computed(() => props.financeData.map(item => item.expense))
 
 const series = computed(() => [
     {
-        name: 'Income',
+        name: 'Xarajat',
         data: incomeData.value
     },
     {
-        name: 'Expense',
+        name: 'Daromad',
         data: expenseData.value
     }
 ])

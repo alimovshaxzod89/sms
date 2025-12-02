@@ -1,10 +1,34 @@
 <template>
-    <div class="w-full lg:w-1/3 mt-3 bg-white rounded-2xl p-4">
+    <a-card :bordered="false" class="shadow-sm h-full">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold">{{ title }}</h2>
-            <IconMore class="cursor-pointer" />
-        </div>
+        <template #title>
+            <a-space>
+                <span>{{ title }}</span>
+            </a-space>
+        </template>
+        <template #extra>
+            <a-dropdown>
+                <a-button type="text" size="small" shape="circle">
+                    <IconBar class="cursor-pointer" width="20" height="20" />
+                </a-button>
+                <template #overlay>
+                    <a-menu>
+                        <a-menu-item key="1">
+                            <IconEye class="w-4 h-4 inline mr-2" />
+                            Ko'rish
+                        </a-menu-item>
+                        <a-menu-item key="2">
+                            <IconExcel class="w-4 h-4 inline mr-2" />
+                            Export
+                        </a-menu-item>
+                        <a-menu-item key="3">
+                            <IconRefresh class="w-4 h-4 inline mr-2" />
+                            Yangilash
+                        </a-menu-item>
+                    </a-menu>
+                </template>
+            </a-dropdown>
+        </template>
 
         <!-- Chart -->
         <div class="relative">
@@ -22,43 +46,70 @@
             </div>
         </div>
 
-        <!-- Legend -->
-        <div class="flex justify-center gap-8 mt-4">
-            <div class="text-center">
-                <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-4 h-4 rounded-full bg-[#FAE27C]"></div>
-                </div>
-                <div class="text-2xl font-bold">{{ totalCount.toLocaleString() }}</div>
-                <div class="text-xs text-gray-400">Total: (100%)</div>
-            </div>
-            <div class="text-center">
-                <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-4 h-4 rounded-full bg-[#3498F5]"></div>
-                </div>
-                <div class="text-2xl font-bold">{{ boysCount.toLocaleString() }}</div>
-                <div class="text-xs text-gray-400">Boys ({{ boysPercentage }}%)</div>
-            </div>
-            <div class="text-center">
-                <div class="flex items-center justify-center gap-2 mb-1">
-                    <div class="w-4 h-4 rounded-full bg-[#fc038c]"></div>
-                </div>
-                <div class="text-2xl font-bold">{{ girlsCount.toLocaleString() }}</div>
-                <div class="text-xs text-gray-400">Girls ({{ girlsPercentage }}%)</div>
-            </div>
-        </div>
-    </div>
+        <!-- Legend with Statistics -->
+        <a-row :gutter="16" class="mt-4">
+            <a-col :span="8">
+                <a-statistic 
+                    title="Jami" 
+                    :value="totalCount" 
+                    :value-style="{ color: '#FAE27C', fontSize: '20px' }"
+                    :precision="0"
+                >
+                    <template #prefix>
+                        <a-badge color="#FAE27C" />
+                    </template>
+                    <template #suffix>
+                        <span class="text-xs text-gray-400">(100%)</span>
+                    </template>
+                </a-statistic>
+            </a-col>
+            <a-col :span="8">
+                <a-statistic 
+                    title="O'g'il bolalar" 
+                    :value="boysCount" 
+                    :value-style="{ color: '#3498F5', fontSize: '20px' }"
+                    :precision="0"
+                >
+                    <template #prefix>
+                        <a-badge color="#3498F5" />
+                    </template>
+                    <template #suffix>
+                        <span class="text-xs text-gray-400">({{ boysPercentage }}%)</span>
+                    </template>
+                </a-statistic>
+            </a-col>
+            <a-col :span="8">
+                <a-statistic 
+                    title="Qiz bolalar" 
+                    :value="girlsCount" 
+                    :value-style="{ color: '#fc038c', fontSize: '20px' }"
+                    :precision="0"
+                >
+                    <template #prefix>
+                        <a-badge color="#fc038c" />
+                    </template>
+                    <template #suffix>
+                        <span class="text-xs text-gray-400">({{ girlsPercentage }}%)</span>
+                    </template>
+                </a-statistic>
+            </a-col>
+        </a-row>
+    </a-card>
 </template>
 <script setup>
 import { computed } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
-import IconMore from '@components/icon/IconMore.vue'
 import IconBoy from './icon/IconBoy.vue'
 import IconGirl from './icon/IconGirl.vue'
+import IconBar from './icon/IconBar.vue'
+import IconEye from './icon/IconEye.vue'
+import IconExcel from './icon/IconExcel.vue'
+import IconRefresh from './icon/IconRefresh.vue'
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'Students'
+        default: 'O\'quvchilar'
     },
     boysCount: {
         type: Number,

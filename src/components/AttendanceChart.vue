@@ -1,38 +1,71 @@
 <template>
-    <div class="w-full lg:w-2/3 mt-3 bg-white rounded-2xl p-4">
+    <a-card :bordered="false" class="shadow-sm h-full">
         <!-- Header -->
-        <div class="flex justify-between items-center mb-4">
-            <h2 class="text-lg font-semibold">{{ title }}</h2>
-            <IconMore class="cursor-pointer" />
-        </div>
+        <template #title>
+            <a-space>
+                <IconAttendance class="w-5 h-5" />
+                <span>{{ title }}</span>
+            </a-space>
+        </template>
+        <template #extra>
+            <a-dropdown>
+                <a-button type="text" size="small" shape="circle">
+                    <IconMore class="cursor-pointer" />
+                </a-button>
+                <template #overlay>
+                    <a-menu>
+                        <a-menu-item key="1">
+                            <IconEye class="w-4 h-4 inline mr-2" />
+                            Batafsil
+                        </a-menu-item>
+                        <a-menu-item key="2">
+                            <IconExcel class="w-4 h-4 inline mr-2" />
+                            Export
+                        </a-menu-item>
+                        <a-menu-item key="3">
+                            <IconRefresh class="w-4 h-4 inline mr-2" />
+                            Yangilash
+                        </a-menu-item>
+                    </a-menu>
+                </template>
+            </a-dropdown>
+        </template>
 
         <!-- Legend -->
-        <div class="flex gap-4 mb-6">
-            <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded-full bg-[#99CBFA]"></div>
-                <span class="text-sm text-gray-500">Present</span>
-            </div>
-            <div class="flex items-center gap-2">
-                <div class="w-4 h-4 rounded-full bg-[#C3EBFA]"></div>
-                <span class="text-sm text-gray-500">Absent</span>
-            </div>
-        </div>
+        <a-space class="mb-6" :size="16">
+            <a-tag color="#99CBFA">
+                <template #icon>
+                    <a-badge color="#99CBFA" />
+                </template>
+                Kelgan
+            </a-tag>
+            <a-tag color="#C3EBFA">
+                <template #icon>
+                    <a-badge color="#C3EBFA" />
+                </template>
+                Kelmagan
+            </a-tag>
+        </a-space>
 
         <!-- Chart -->
         <div>
             <VueApexCharts type="bar" height="300" :options="chartOptions" :series="series" />
         </div>
-    </div>
+    </a-card>
 </template>
 <script setup>
 import { computed } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import IconMore from '@components/icon/IconMore.vue'
+import IconAttendance from './icon/IconAttendance.vue'
+import IconEye from './icon/IconEye.vue'
+import IconExcel from './icon/IconExcel.vue'
+import IconRefresh from './icon/IconRefresh.vue'
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'Attendance'
+        default: 'Davomat'
     },
     attendanceData: {
         type: Array,
@@ -52,11 +85,11 @@ const absentData = computed(() => props.attendanceData.map(item => item.absent))
 
 const series = computed(() => [
     {
-        name: 'Present',
+        name: 'Kelgan',
         data: presentData.value
     },
     {
-        name: 'Absent',
+        name: 'Kelmagan',
         data: absentData.value
     }
 ])
