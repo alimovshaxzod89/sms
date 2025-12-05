@@ -14,9 +14,9 @@
 </template>
 
 <script setup>
-import Announcements from '@/components/admin/Announcements.vue';
-import EventCalendar from '@/components/admin/EventCalendar.vue';
-import BigCalendar from '@/components/student/BigCalendar.vue';
+import Announcements from '@/components/ui/Announcements.vue';
+import EventCalendar from '@/components/ui/EventCalendar.vue';
+import BigCalendar from '@/components/ui/BigCalendar.vue';
 </script>
 
 <style scoped>

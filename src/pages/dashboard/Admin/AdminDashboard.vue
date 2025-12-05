@@ -65,12 +65,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import UserCard from '@/components/admin/UserCard.vue';
-import CountChart from '@/components/admin/CountChart.vue';
-import AttendanceChart from '@/components/admin/AttendanceChart.vue';
-import FinanceChart from '@/components/admin/FinanceChart.vue';
-import EventCalendar from '@/components/admin/EventCalendar.vue';
-import Announcements from '@/components/admin/Announcements.vue';
+import UserCard from '@/components/dashboard/UserCard.vue';
+import CountChart from '@/components/dashboard/CountChart.vue';
+import AttendanceChart from '@/components/dashboard/AttendanceChart.vue';
+import FinanceChart from '@/components/dashboard/FinanceChart.vue';
+import EventCalendar from '@/components/ui/EventCalendar.vue';
+import Announcements from '@/components/ui/Announcements.vue';
 
 // Loading state
 const loading = ref(false);

@@ -26,6 +26,7 @@ export const router = createRouter({
             meta: {
                 role: "ADMIN",
             },
+            redirect: { name: "AdminDashboard" },
             children: [
                 {
                     path: "",
