@@ -1,11 +1,22 @@
 <template>
-  <div>
-    <h1>Teacher Dashboard</h1>
+  <div class="p-4 flex gap-4 flex-col xl:flex-row min-h-[calc(100vh-100px)]">
+    <!-- Left -->
+    <div class="w-full xl:w-2/3 h-full">
+      <BigCalendar class-group="4A" class="h-full" />
+    </div>
+
+    <!-- RIGHT -->
+    <div class="w-full xl:w-1/3 flex flex-col gap-8">
+      <EventCalendar />
+      <Announcements />
+    </div>
   </div>
 </template>
 
 <script setup>
-
+import Announcements from '@/components/admin/Announcements.vue';
+import EventCalendar from '@/components/admin/EventCalendar.vue';
+import BigCalendar from '@/components/student/BigCalendar.vue';
 </script>
 
 <style scoped>
