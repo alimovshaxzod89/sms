@@ -83,12 +83,12 @@
 
 <script setup>
 import { ref } from 'vue';
-import IconMore from './icon/IconMore.vue';
-import IconFlag from './icon/IconFlag.vue';
-import IconClock from './icon/IconClock.vue';
-import IconClockCheck from './icon/IconClockCheck.vue';
-import IconPlus from './icon/IconPlus.vue';
-import IconEye from './icon/IconEye.vue';
+import IconMore from '@/components/icon/IconMore.vue';
+import IconFlag from '@/components/icon/IconFlag.vue';
+import IconClock from '@/components/icon/IconClock.vue';
+import IconClockCheck from '@/components/icon/IconClockCheck.vue';
+import IconPlus from '@/components/icon/IconPlus.vue';
+import IconEye from '@/components/icon/IconEye.vue';
 
 const value = ref();
 const events = ref([

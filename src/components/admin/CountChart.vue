@@ -99,12 +99,12 @@
 <script setup>
 import { computed } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
-import IconBoy from './icon/IconBoy.vue'
-import IconGirl from './icon/IconGirl.vue'
-import IconBar from './icon/IconBar.vue'
-import IconEye from './icon/IconEye.vue'
-import IconExcel from './icon/IconExcel.vue'
-import IconRefresh from './icon/IconRefresh.vue'
+import IconBoy from '@/components/icon/IconBoy.vue'
+import IconGirl from '@/components/icon/IconGirl.vue'
+import IconBar from '@/components/icon/IconBar.vue'
+import IconEye from '@/components/icon/IconEye.vue'
+import IconExcel from '@/components/icon/IconExcel.vue'
+import IconRefresh from '@/components/icon/IconRefresh.vue'
 
 const props = defineProps({
     title: {

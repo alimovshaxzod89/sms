@@ -1,9 +1,9 @@
 <template>
-    <a-card :bordered="false" class="shadow-sm">
+    <a-card :bordered="false" class="shadow-sm h-full">
         <!-- Header -->
         <template #title>
             <a-space>
-                <IconBag class="w-5 h-5" />
+                <IconAttendance class="w-5 h-5" />
                 <span>{{ title }}</span>
             </a-space>
         </template>
@@ -32,97 +32,90 @@
         </template>
 
         <!-- Legend -->
-        <a-space class="mb-6" :size="16" style="width: 100%; justify-content: center;">
+        <a-space class="mb-6" :size="16">
             <a-tag color="#99CBFA">
                 <template #icon>
                     <a-badge color="#99CBFA" />
                 </template>
-                Daromad
+                Kelgan
             </a-tag>
             <a-tag color="#C3EBFA">
                 <template #icon>
                     <a-badge color="#C3EBFA" />
                 </template>
-                Xarajat
+                Kelmagan
             </a-tag>
         </a-space>
 
         <!-- Chart -->
         <div>
-            <VueApexCharts 
-                type="line" 
-                height="350" 
-                :options="chartOptions" 
-                :series="series" 
-            />
+            <VueApexCharts type="bar" height="300" :options="chartOptions" :series="series" />
         </div>
     </a-card>
 </template>
-
 <script setup>
 import { computed } from 'vue'
 import VueApexCharts from 'vue3-apexcharts'
 import IconMore from '@components/icon/IconMore.vue'
-import IconBag from './icon/IconBag.vue'
-import IconEye from './icon/IconEye.vue'
-import IconExcel from './icon/IconExcel.vue'
-import IconRefresh from './icon/IconRefresh.vue'
+import IconAttendance from '@/components/icon/IconAttendance.vue'
+import IconEye from '@/components/icon/IconEye.vue'
+import IconExcel from '@/components/icon/IconExcel.vue'
+import IconRefresh from '@/components/icon/IconRefresh.vue'
 
 const props = defineProps({
     title: {
         type: String,
-        default: 'Moliya'
+        default: 'Davomat'
     },
-    financeData: {
+    attendanceData: {
         type: Array,
         default: () => [
-            { month: 'Jan', income: 2500, expense: 1000 },
-            { month: 'Feb', income: 3000, expense: 2100 },
-            { month: 'Mar', income: 2000, expense: 2300 },
-            { month: 'Apr', income: 2700, expense: 2100 },
-            { month: 'May', income: 1800, expense: 1200 },
-            { month: 'Jun', income: 2600, expense: 2600 },
-            { month: 'Jul', income: 3500, expense: 2300 },
-            { month: 'Aug', income: 2500, expense: 900 },
-            { month: 'Sep', income: 3200, expense: 2000 },
-            { month: 'Oct', income: 2300, expense: 1300 },
-            { month: 'Nov', income: 3400, expense: 1100 },
-            { month: 'Dec', income: 3200, expense: 1000 }
+            { day: 'Mon', present: 60, absent: 40 },
+            { day: 'Tue', present: 70, absent: 60 },
+            { day: 'Wed', present: 90, absent: 75 },
+            { day: 'Thu', present: 90, absent: 75 },
+            { day: 'Fri', present: 65, absent: 55 }
         ]
     }
 })
 
-const categories = computed(() => props.financeData.map(item => item.month))
-const incomeData = computed(() => props.financeData.map(item => item.income))
-const expenseData = computed(() => props.financeData.map(item => item.expense))
+const categories = computed(() => props.attendanceData.map(item => item.day))
+const presentData = computed(() => props.attendanceData.map(item => item.present))
+const absentData = computed(() => props.attendanceData.map(item => item.absent))
 
 const series = computed(() => [
     {
-        name: 'Xarajat',
-        data: incomeData.value
+        name: 'Kelgan',
+        data: presentData.value
     },
     {
-        name: 'Daromad',
-        data: expenseData.value
+        name: 'Kelmagan',
+        data: absentData.value
     }
 ])
 
 const chartOptions = computed(() => ({
     chart: {
-        type: 'line',
+        type: 'bar',
         toolbar: {
             show: false
-        },
-        zoom: {
-            enabled: false
         }
     },
-    stroke: {
-        width: [3, 3],
-        curve: 'smooth'
+    plotOptions: {
+        bar: {
+            horizontal: false,
+            columnWidth: '50%',
+            borderRadius: 8,
+            borderRadiusApplication: 'end'
+        }
     },
     dataLabels: {
-        enabled: false
+        enabled: true
+    },
+    stroke: {
+        show: false,
+        width: 0,
+        colors: ['transparent']
     },
     xaxis: {
         categories: categories.value,
@@ -134,64 +127,50 @@ const chartOptions = computed(() => ({
         },
         labels: {
             style: {
-                colors: '#D1D5DB',
+                colors: '#CBD5E1',
                 fontSize: '12px'
             }
         }
     },
     yaxis: {
         min: 0,
-        max: 3600,
+        max: 100,
         tickAmount: 4,
         labels: {
             style: {
-                colors: '#D1D5DB',
+                colors: '#CBD5E1',
                 fontSize: '12px'
             }
         }
     },
     grid: {
-        borderColor: '#F3F4F6',
-        strokeDashArray: 5,
+        borderColor: '#f1f5f9',
+        strokeDashArray: 0,
         xaxis: {
             lines: {
-                show: true
+                show: false
             }
         },
         yaxis: {
             lines: {
                 show: true
             }
-        },
-        padding: {
-            top: 0,
-            right: 10,
-            bottom: 0,
-            left: 10
         }
     },
-    colors: ['#C3EBFA', '#99CBFA'],
+    colors: ['#99CBFA', '#CCE5FD'],
     legend: {
         show: false
     },
     tooltip: {
         y: {
             formatter: function (val) {
-                return '$' + val.toLocaleString()
+                return val + ' students'
             }
-        }
-    },
-    markers: {
-        size: 5,
-        colors: ['#C3EBFA', '#99CBFA'],
-        strokeColors: '#fff',
-        strokeWidth: 2,
-        hover: {
-            size: 7
         }
     }
 }))
 </script>
 
-<style scoped></style>
 
+
+<style scoped></style>

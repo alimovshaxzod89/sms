@@ -50,14 +50,14 @@
 
 <script setup>
 import { computed } from 'vue';
-import IconMore from './icon/IconMore.vue';
-import IconEye from './icon/IconEye.vue';
-import IconEdit from './icon/IconEdit.vue';
-import IconExcel from './icon/IconExcel.vue';
-import IconUser from './icon/IconUser.vue';
-import IconUsers from './icon/IconUsers.vue';
-import IconUsersTwo from './icon/IconUsersTwo.vue';
-import IconPerson from './icon/IconPerson.vue';
+import IconMore from '@/components/icon/IconMore.vue';
+import IconEye from '@/components/icon/IconEye.vue';
+import IconEdit from '@/components/icon/IconEdit.vue';
+import IconExcel from '@/components/icon/IconExcel.vue';
+import IconUser from '@/components/icon/IconUser.vue';
+import IconUsers from '@/components/icon/IconUsers.vue';
+import IconUsersTwo from '@/components/icon/IconUsersTwo.vue';
+import IconPerson from '@/components/icon/IconPerson.vue';
 
 const props = defineProps({
   type: {

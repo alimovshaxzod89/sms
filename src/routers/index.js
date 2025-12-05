@@ -35,22 +35,8 @@ export const router = createRouter({
             ]
         },
         {
-            path: "teachers",
-            name: "TeachersView",
-            meta: {
-                role: "TEACHER",
-            },
-            children: [
-                {
-                    path: "",
-                    name: "TeacherDashboard",
-                    component: () => import("@/pages/dashboard/Teacher/TeacherDashboard.vue"),
-                }
-            ]
-        },
-        {
-            path: "students",
-            name: "StudentsView",
+            path: "student",
+            name: "StudentView",
             meta: {
                 role: "STUDENT",
             },
@@ -62,6 +48,21 @@ export const router = createRouter({
                 }
             ]
         },
+        {
+            path: "teacher",
+            name: "TeacherView",
+            meta: {
+                role: "TEACHER",
+            },
+            children: [
+                {
+                    path: "",
+                    name: "TeacherDashboard",
+                    component: () => import("@/pages/dashboard/Teacher/TeacherDashboard.vue"),
+                }
+            ]
+        },
+        
         {
             path: "parent",
             name: "ParentView",

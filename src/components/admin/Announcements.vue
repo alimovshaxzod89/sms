@@ -78,9 +78,9 @@
 <script setup>
 import { ref } from 'vue';
 import { Empty } from 'ant-design-vue';
-import IconAnnouncement from './icon/IconAnnouncement.vue';
-import IconPlus from './icon/IconPlus.vue';
-import IconClock from './icon/IconClock.vue';
+import IconAnnouncement from '@/components/icon/IconAnnouncement.vue';
+import IconPlus from '@/components/icon/IconPlus.vue';
+import IconClock from '@/components/icon/IconClock.vue';
 
 const announcements = ref([
     {
