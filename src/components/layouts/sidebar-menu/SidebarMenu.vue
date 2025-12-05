@@ -8,13 +8,23 @@
 </template>
 
 <script setup>
+import IconAnnouncement from '@/components/icon/IconAnnouncement.vue';
+import IconAttendance from '@/components/icon/IconAttendance.vue';
+import IconBook from '@/components/icon/IconBook.vue';
+import IconCalendar from '@/components/icon/IconCalendar.vue';
 import IconDepartment from '@/components/icon/IconDepartment.vue';
-import IconEmployees from '@/components/icon/IconEmployees.vue';
-import IconEye from '@/components/icon/IconEye.vue';
+import IconExam from '@/components/icon/IconExam.vue';
+import IconLesson from '@/components/icon/IconLesson.vue';
+import IconLogOut from '@/components/icon/IconLogOut.vue';
+import IconMail from '@/components/icon/IconMail.vue';
+import IconPerson from '@/components/icon/IconPerson.vue';
+import IconSettings from '@/components/icon/IconSettings.vue';
+import IconSubTask from '@/components/icon/IconSubTask.vue';
 import IconUser from '@/components/icon/IconUser.vue';
 import IconUsers from '@/components/icon/IconUsers.vue';
+import IconUsersTwo from '@/components/icon/IconUsersTwo.vue';
 import IconMenuHome from '@/components/icon/menu-icons/IconMenuHome.vue';
-import { h, reactive, ref } from 'vue';
+import { h, reactive } from 'vue';
 import { useRoute, useRouter } from 'vue-router';
 
 const router = useRouter();
@@ -49,7 +59,7 @@ const pages = reactive([
     path: 'admin/parents',
     key: 'parents',
     role: 'ADMIN',
-    icon: () => h(IconUsers),
+    icon: () => h(IconUsersTwo),
     label: 'Parents',
     name: 'Parents',
   },
@@ -65,7 +75,7 @@ const pages = reactive([
     path: 'admin/lessons',
     key: 'lessons',
     role: 'ADMIN',
-    icon: () => h(IconEmployees),
+    icon: () => h(IconLesson),
     label: 'Lessons',
     name: 'Lessons',
   },
@@ -73,7 +83,7 @@ const pages = reactive([
     path: 'admin/exams',
     key: 'exams',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconExam),
     label: 'Exams',
     name: 'Exams',
   },
@@ -81,7 +91,7 @@ const pages = reactive([
     path: 'admin/assignments',
     key: 'assignments',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconSubTask),
     label: 'Assignments',
     name: 'Assignments',
   },
@@ -89,7 +99,7 @@ const pages = reactive([
     path: 'admin/attendance',
     key: 'attendance',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconAttendance),
     label: 'Attendance',
     name: 'Attendance',
   },
@@ -97,7 +107,7 @@ const pages = reactive([
     path: 'admin/calendar',
     key: 'calendar',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconCalendar),
     label: 'Calendar',
     name: 'Calendar',
   },
@@ -105,7 +115,7 @@ const pages = reactive([
     path: 'admin/messages',
     key: 'messages',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconMail),
     label: 'Messages',
     name: 'Messages',
   },
@@ -113,7 +123,7 @@ const pages = reactive([
     path: 'admin/announcements',
     key: 'announcements',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconAnnouncement),
     label: 'Announcements',
     name: 'Announcements',
   },
@@ -121,7 +131,7 @@ const pages = reactive([
     path: 'admin/courses',
     key: 'courses',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconBook),
     label: 'Courses',
     name: 'Courses',
   },
@@ -129,7 +139,7 @@ const pages = reactive([
     path: 'admin/settings',
     key: 'settings',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconSettings),
     label: 'Settings',
     name: 'Settings',
   },
@@ -137,7 +147,7 @@ const pages = reactive([
     path: 'admin/profile',
     key: 'profile',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconPerson),
     label: 'Profile',
     name: 'Profile',
   },
@@ -145,7 +155,7 @@ const pages = reactive([
     path: 'admin/logout',
     key: 'logout',
     role: 'ADMIN',
-    icon: () => h(IconEye),
+    icon: () => h(IconLogOut),
     label: 'Logout',
     name: 'Logout',
   },
