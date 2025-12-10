@@ -1,0 +1,182 @@
+<template>
+  <div class="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+    <!-- Top -->
+    <div class="flex items-center justify-between">
+      <h1 class="hidden md:block text-lg font-semibold">All Teachers</h1>
+      <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
+        <TableSearch v-model="searchValue" @search="handleSearch" />
+        <div class="flex items-center gap-4 self-end">
+          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-300">
+            <IconFilter />
+          </button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-300">
+            <IconSort />
+          </button>
+          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-300">
+            <IconPlus />
+          </button>
+        </div>
+      </div>
+    </div>
+    
+    <!-- List -->
+    <div class="mt-4 overflow-x-auto">
+      <Table 
+        :columns="tableColumns" 
+        :data-source="teachersData" 
+        :loading="loading"
+        :pagination="paginationConfig"
+        :permissions="permissions"
+        :scroll="{ x: 'max-content' }"
+        @change-page="handleTableChange"
+        @view-row="handleView"
+        @edit-row="handleEdit"
+        @delete-row="handleDelete"
+      />
+    </div>
+  </div>
+</template>
+
+<script setup>
+import { ref, computed } from 'vue';
+import { teachersData } from '@/lib/data';
+import TableSearch from '../ui/TableSearch.vue';
+import IconFilter from '@components/icon/IconFilter.vue';
+import IconSort from '@components/icon/IconSort.vue';
+import IconPlus from '@components/icon/IconPlus.vue';
+import Table from '../ui/Table.vue';
+
+const props = defineProps({
+  permissions: {
+    type: Object,
+    default: () => ({
+      canEdit: true,
+      canDelete: true,
+      canView: true,
+    })
+  },
+  role: {
+    type: String,
+    default: 'ADMIN'
+  }
+});
+
+// State
+const searchValue = ref('');
+const loading = ref(false);
+const currentPage = ref(1);
+const pageSize = ref(10);
+
+// Table columns konfiguratsiyasi
+const tableColumns = computed(() => [
+  {
+    title: 'Rasm',
+    key: 'photo',
+    dataIndex: 'photo',
+    width: 80,
+    align: 'center'
+  },
+  {
+    title: 'F.I.O.',
+    key: 'name',
+    dataIndex: 'name',
+    sorter: true,
+    width: 200
+  },
+  {
+    title: 'ID',
+    key: 'teacherId',
+    dataIndex: 'teacherId',
+    width: 150
+  },
+  {
+    title: 'Email',
+    key: 'email',
+    dataIndex: 'email',
+    width: 200
+  },
+  {
+    title: 'Telefon',
+    key: 'phone',
+    dataIndex: 'phone',
+    width: 150
+  },
+  {
+    title: 'Fanlar',
+    key: 'subjects',
+    dataIndex: 'subjects',
+    width: 250
+  },
+  {
+    title: 'Sinflar',
+    key: 'classes',
+    dataIndex: 'classes',
+    width: 200
+  },
+  {
+    title: 'Manzil',
+    key: 'address',
+    dataIndex: 'address',
+    ellipsis: true
+  },
+  {
+    title: 'Amallar',
+    key: 'action',
+    width: 150,
+    fixed: 'right',
+    align: 'center'
+  }
+]);
+
+// Pagination config
+const paginationConfig = computed(() => ({
+  current: currentPage.value,
+  pageSize: pageSize.value,
+  total: searchValue.value 
+    ? teachersData.filter(teacher => 
+        teacher.name.toLowerCase().includes(searchValue.value.toLowerCase()) ||
+        teacher.email.toLowerCase().includes(searchValue.value.toLowerCase()) ||
+        teacher.phone.includes(searchValue.value) ||
+        teacher.teacherId.includes(searchValue.value)
+      ).length
+    : teachersData.length,
+  showSizeChanger: true,
+  showTotal: (total) => `Jami ${total} ta o'qituvchi`
+}));
+
+// Handlers
+const handleSearch = (value) => {
+  searchValue.value = value;
+  currentPage.value = 1; // Qidiruvda birinchi sahifaga qaytish
+};
+
+const handleTableChange = ({ pag, filters, sorter }) => {
+  if (pag) {
+    currentPage.value = pag.current;
+    pageSize.value = pag.pageSize;
+  }
+  // Sorter va filterlarni qo'shish mumkin
+};
+
+const handlePaginationChange = (page, size) => {
+  currentPage.value = page;
+  pageSize.value = size;
+};
+
+const handleView = (record) => {
+  console.log('View teacher:', record);
+  // View logic
+};
+
+const handleEdit = (record) => {
+  console.log('Edit teacher:', record);
+  // Edit logic
+};
+
+const handleDelete = (record) => {
+  console.log('Delete teacher:', record);
+  // Delete logic with confirmation
+};
+</script>
+
+<style scoped></style>

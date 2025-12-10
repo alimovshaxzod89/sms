@@ -33,6 +33,21 @@ export const router = createRouter({
                     name: "AdminDashboard",
                     component: () => import("@/pages/dashboard/Admin/AdminDashboard.vue"),
                 },
+                {
+                    path: "teachers",
+                    name: "Teachers",
+                    component: () => import("@/pages/dashboard/Admin/teachers/Teachers.vue"),
+                },
+                {
+                    path: "students",
+                    name: "Students",
+                    component: () => import("@/pages/dashboard/Admin/students/Students.vue"),
+                },
+                {
+                    path: "parents",
+                    name: "Parents",
+                    component: () => import("@/pages/dashboard/Admin/parents/Parents.vue"),
+                }
             ]
         },
         {
@@ -60,7 +75,12 @@ export const router = createRouter({
                     path: "",
                     name: "TeacherDashboard",
                     component: () => import("@/pages/dashboard/Teacher/TeacherDashboard.vue"),
-                }
+                },
+                {
+                    path: "teachers",
+                    name: "TeacherTeachers",
+                    component: () => import("@/pages/dashboard/Teacher/teachers/Teachers.vue"),
+                },
             ]
         },
         

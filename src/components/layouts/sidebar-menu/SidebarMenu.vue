@@ -40,7 +40,7 @@ const pages = reactive([
     name: 'Home',
   },
   {
-    path: 'teachers',
+    path: 'admin/teachers',
     key: 'teachers',
     role: 'ADMIN',
     icon: () => h(IconUsers),
@@ -48,7 +48,7 @@ const pages = reactive([
     name: 'Teachers',
   },
   {
-    path: 'students',
+    path: 'admin/students',
     key: 'students',
     role: 'ADMIN',
     icon: () => h(IconUser),
@@ -158,6 +158,23 @@ const pages = reactive([
     icon: () => h(IconLogOut),
     label: 'Logout',
     name: 'Logout',
+  },
+  // TEACHER ROLE
+  {
+    path: 'teacher',
+    key: 'teacher-home',
+    role: 'TEACHER',
+    icon: () => h(IconMenuHome),
+    label: 'Home',
+    name: 'TeacherHome',
+  },
+  {
+    path: 'teacher/teachers',
+    key: 'teacher-teachers',
+    role: 'TEACHER',
+    icon: () => h(IconUsers),
+    label: 'Teachers',
+    name: 'TeacherTeachers',
   },
 ])
 
