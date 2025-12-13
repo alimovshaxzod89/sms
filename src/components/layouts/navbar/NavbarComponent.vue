@@ -54,11 +54,11 @@
 
 <script setup>
 import { ref } from 'vue';
-import IconSearch from '@/components/icon/IconSearch.vue';
-import IconComment from '@/components/icon/IconComment.vue';
-import IconAnnouncement from '@/components/icon/IconAnnouncement.vue';
-import IconUser from '@/components/icon/IconUser.vue';
-import IconMenu from '@/components/icon/IconMenu.vue';
+import IconSearch from '@/components/icon/menu-icons/IconSearch.vue';
+import IconComment from '@/components/icon/menu-icons/IconComment.vue';
+import IconAnnouncement from '@/components/icon/menu-icons/IconAnnouncement.vue';
+import IconUser from '@/components/icon/menu-icons/IconUser.vue';
+import IconMenu from '@/components/icon/menu-icons/IconMenu.vue';
 
 // Search state
 const searchValue = ref('');

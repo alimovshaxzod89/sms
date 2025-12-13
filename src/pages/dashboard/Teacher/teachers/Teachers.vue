@@ -11,7 +11,7 @@
 </template>
 
 <script setup>
-import TeachersList from '@/components/shared/TeachersList.vue';
+import TeachersList from '@/components/shared/lists/TeachersList.vue';
 
 // Permissions for Teacher
 const adminPermissions = {

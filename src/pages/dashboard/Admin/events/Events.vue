@@ -1,14 +1,15 @@
 <template>
     <div class="p-4">
-        <!-- Student List -->
         <a-card>
-            <StudentList :permissions="adminPermissions" role="ADMIN" />
+            <EventList 
+                :permissions="adminPermissions"
+                role="ADMIN"
+            />
         </a-card>
     </div>
 </template>
-
 <script setup>
-import StudentList from '@/components/shared/lists/StudentList.vue';
+import EventList from '@/components/shared/lists/EventList.vue';
 
 // Permissions for Admin
 const adminPermissions = {
@@ -16,7 +17,4 @@ const adminPermissions = {
     canDelete: true,
     canView: true,
 };
-
 </script>
-
-<style scoped></style>

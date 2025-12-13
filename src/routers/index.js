@@ -47,6 +47,46 @@ export const router = createRouter({
                     path: "parents",
                     name: "Parents",
                     component: () => import("@/pages/dashboard/Admin/parents/Parents.vue"),
+                },
+                {
+                    path: "subjects",
+                    name: "Subjects",
+                    component: () => import("@/pages/dashboard/Admin/subjects/Subjects.vue"),
+                },
+                {
+                    path: "classes",
+                    name: "Classes",
+                    component: () => import("@/pages/dashboard/Admin/classes/Classes.vue"),
+                },
+                {
+                    path: "lessons",
+                    name: "Lessons",
+                    component: () => import("@/pages/dashboard/Admin/lessons/Lessons.vue"),
+                },
+                {
+                    path: "exams",
+                    name: "Exams",
+                    component: () => import("@/pages/dashboard/Admin/exams/Exams.vue"),
+                },
+                {
+                    path: "assignments",
+                    name: "Assignments",
+                    component: () => import("@/pages/dashboard/Admin/assignments/Assignments.vue"),
+                },
+                {
+                    path: "results",
+                    name: "Results",
+                    component: () => import("@/pages/dashboard/Admin/results/Results.vue"),
+                },
+                {
+                    path: "events",
+                    name: "Events",
+                    component: () => import("@/pages/dashboard/Admin/events/Events.vue"),
+                },
+                {
+                    path: "announcements",
+                    name: "Announcements",
+                    component: () => import("@/pages/dashboard/Admin/announcements/Announcements.vue"),
                 }
             ]
         },

@@ -1,8 +1,8 @@
 <template>
     <div class="p-4">
-      <!-- Teachers List -->
+      <!-- Lessons List -->
       <a-card>
-        <TeachersList
+        <LessonsList
           :permissions="adminPermissions"
           role="ADMIN"
         />
@@ -11,7 +11,7 @@
   </template>
   
   <script setup>
-  import TeachersList from '@/components/shared/lists/TeachersList.vue';
+  import LessonsList from '@/components/shared/lists/LessonsList.vue';
   
   // Permissions for Admin
   const adminPermissions = {
@@ -24,3 +24,4 @@
   
 <style scoped>
 </style>
+

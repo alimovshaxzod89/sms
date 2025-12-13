@@ -65,11 +65,11 @@
 
 <script setup>
 import { ref } from 'vue';
-import UserCard from '@/components/dashboard/UserCard.vue';
-import CountChart from '@/components/dashboard/CountChart.vue';
-import AttendanceChart from '@/components/dashboard/AttendanceChart.vue';
-import FinanceChart from '@/components/dashboard/FinanceChart.vue';
-import EventCalendar from '@/components/ui/EventCalendar.vue';
+import UserCard from '@/components/ui/cards/UserCard.vue';
+import CountChart from '@/components/ui/charts/CountChart.vue';
+import AttendanceChart from '@/components/ui/charts/AttendanceChart.vue';
+import FinanceChart from '@/components/ui/charts/FinanceChart.vue';
+import EventCalendar from '@/components/ui/calendars/EventCalendar.vue';
 import Announcements from '@/components/ui/Announcements.vue';
 
 // Loading state

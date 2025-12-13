@@ -11,7 +11,7 @@
   </template>
   
   <script setup>
-  import ParentsList from '@/components/shared/ParentsList.vue';
+  import ParentsList from '@/components/shared/lists/ParentsList.vue';
   
   // Permissions for Admin
   const adminPermissions = {
