@@ -1,21 +1,41 @@
 <template>
-  <div class="bg-white p-4 rounded-md flex-1 m-4 mt-0">
+  <a-card class="flex-1 m-4 mt-0 border-none">
     <!-- Top -->
     <div class="flex items-center justify-between">
-      <h1 class="hidden md:block text-lg font-semibold">All Teachers</h1>
+      <a-typography-title :level="4" class="!mb-0 hidden md:block">
+        All Teachers
+      </a-typography-title>
       <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
         <TableSearch v-model="searchValue" @search="handleSearch" />
-        <div class="flex items-center gap-4 self-end">
-          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-300">
-            <IconFilter />
-          </button>
-          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-300">
-            <IconSort />
-          </button>
-          <button class="w-8 h-8 flex items-center justify-center rounded-full bg-yellow-300">
-            <IconPlus />
-          </button>
-        </div>
+        <a-space class="self-end">
+          <a-button 
+            shape="circle" 
+            type="text"
+            class="bg-yellow-300 hover:bg-yellow-400"
+          >
+            <template #icon>
+              <IconFilter />
+            </template>
+          </a-button>
+          <a-button 
+            shape="circle" 
+            type="text"
+            class="bg-yellow-300 hover:bg-yellow-400"
+          >
+            <template #icon>
+              <IconSort />
+            </template>
+          </a-button>
+          <a-button 
+            shape="circle" 
+            type="text"
+            class="bg-yellow-300 hover:bg-yellow-400"
+          >
+            <template #icon>
+              <IconPlus />
+            </template>
+          </a-button>
+        </a-space>
       </div>
     </div>
     
@@ -34,7 +54,7 @@
         @delete-row="handleDelete"
       />
     </div>
-  </div>
+  </a-card>
 </template>
 
 <script setup>

@@ -123,20 +123,18 @@ const handleTableChange = (pag, filters, sorter) => {
 };
 </script>
 
-<style lang="scss" scoped>
-// Fixed columnlar bilan muammolarni hal qilish uchun
-:deep(.ant-table) {
-    .ant-table-fixed-right {
-        box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
-    }
-    
-    .ant-table-cell {
-        white-space: nowrap;
-    }
-    
-    // Actions column uchun
-    .ant-table-cell-fix-right {
-        background: #fff;
-    }
+<style scoped>
+/* Fixed columnlar bilan muammolarni hal qilish uchun */
+:deep(.ant-table .ant-table-fixed-right) {
+    box-shadow: -2px 0 8px rgba(0, 0, 0, 0.05);
+}
+
+:deep(.ant-table .ant-table-cell) {
+    white-space: nowrap;
+}
+
+/* Actions column uchun */
+:deep(.ant-table .ant-table-cell-fix-right) {
+    background: #fff;
 }
 </style>
