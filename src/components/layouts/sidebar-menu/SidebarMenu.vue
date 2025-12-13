@@ -160,22 +160,22 @@ const pages = reactive([
     name: 'Logout',
   },
   // TEACHER ROLE
-  {
-    path: 'teacher',
-    key: 'teacher-home',
-    role: 'TEACHER',
-    icon: () => h(IconMenuHome),
-    label: 'Home',
-    name: 'TeacherHome',
-  },
-  {
-    path: 'teacher/teachers',
-    key: 'teacher-teachers',
-    role: 'TEACHER',
-    icon: () => h(IconUsers),
-    label: 'Teachers',
-    name: 'TeacherTeachers',
-  },
+  // {
+  //   path: 'teacher',
+  //   key: 'teacher-home',
+  //   role: 'TEACHER',
+  //   icon: () => h(IconMenuHome),
+  //   label: 'Home',
+  //   name: 'TeacherHome',
+  // },
+  // {
+  //   path: 'teacher/teachers',
+  //   key: 'teacher-teachers',
+  //   role: 'TEACHER',
+  //   icon: () => h(IconUsers),
+  //   label: 'Teachers',
+  //   name: 'TeacherTeachers',
+  // },
 ])
 
 const emit = defineEmits(['menu-click'])
