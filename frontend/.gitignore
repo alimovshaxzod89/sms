@@ -119,9 +119,3 @@ cypress/screenshots/
 # ============================================
 # Tailwind CSS doesn't create its own cache, but if it exists:
 .tailwindcss-cache/
-
-# ============================================
-# Personal/Local Ignore File
-# ============================================
-# Each developer can write their own ignore rules to .gitignore.local file
-.gitignore.local

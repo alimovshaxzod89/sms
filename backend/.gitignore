@@ -104,9 +104,3 @@ Thumbs.db
 *.swp
 *.swo
 *~
-
-# ============================================
-# Personal/Local Ignore File
-# ============================================
-# Each developer can write their own ignore rules to .gitignore.local file
-.gitignore.local

@@ -4,13 +4,13 @@
 - State management: Pinia stores such as `store/employee/employees.pinia.js` define extensive `state`, `actions`, helper methods, and share `useCore` for toast/loading orchestration. `useCore` centralizes global UI concerns (drawer, loader, breadcrumb, uploads).  
 - Networking: `utils/api/index.js` wraps axios with baseURL config, token + `O-Session` headers, dual interceptors (401 token refresh queue, 400 code-10 session refresh), and `useCore` error hooks. Feature services under `services/modules/**` act as mixins that rely on `setLoading/deleteLoading`.  
 - Component design: `components/base-components` and `layouts` follow an atomic setup on top of Ant Design (buttons, drawers, tables, breadcrumb, loaders). Layout components host navbar/sidebar shells, while `App.vue` handles global loader/toasts.  
-- Routing: `routers/index.js` defines `/dashboard` with nested employee vs. org-admin routes guarded via `beforeEnter` + `meta.role`; router factory injects i18n to update document titles.  
-- UI/styling: `main.js` wires Vue 3 + Pinia + Antd + router + i18n; `styles/main.scss` imports Tailwind layers plus SCSS modules (`mixins`, `ant`, `global`, `responsive`). `App.vue` keeps `LoaderComponent` around `router-view`.
+- Routing: `routers/index.js` defines `/dashboard` with nested employee vs. org-admin routes guarded via `beforeEnter` + `meta.role`.  
+- UI/styling: `main.js` wires Vue 3 + Pinia + Antd + router; `styles/main.scss` imports Tailwind layers plus SCSS modules (`mixins`, `ant`, `global`, `responsive`). `App.vue` keeps `LoaderComponent` around `router-view`.
 
 **Implementation Roadmap for SMS (English Translation)**  
 _Phase 0 – Alignment & Prep_  
 - Reuse existing tooling (`package.json`, `vite.config.js`, Tailwind/PostCSS). Adjust only env vars.  
-- Extend `utils/i18n` and `dayjs` localizations with SMS vocabulary.
+- Extend `dayjs` localizations with SMS vocabulary.
 
 _Phase 1 – Core Architecture_  
 - Clone router skeleton: `/dashboard` children for admin/teacher/student with `meta.role` and guard logic identical to current `routers/index.js`.  
@@ -39,7 +39,7 @@ _Phase 4 – UI & Pages_
 
 _Phase 5 – Routing & Guards_  
 - Meta roles `admin/teacher/student` stored in localStorage (e.g., `sms_role`); guard logic mirrors original.  
-- Use `useCore().redirect` for unauthorized flows; keep i18n-driven titles in `router.beforeEach`.
+- Use `useCore().redirect` for unauthorized flows.
 
 _Phase 6 – UI/Styling Finalization_  
 - Preserve `styles/main.scss` import order; add SMS-specific SCSS under `styles/features`.  
@@ -68,7 +68,7 @@ Hozirgi sessiya “ask mode”da bo‘lgani uchun fayl yarata olmayman; quyidagi
 - **Holat boshqaruvi** Pinia’da domenlarga bo‘lingan `defineStore` fayllari (masalan, `src/store/employee/employees.pinia.js`) katta state modellari, loading URL setlari va servis bilan ishlovchi action’lar orqali boshqariladi; `useCore` markaziy do‘kon toast, drawer, global loader va fayl yuklashni bir joyda tutadi.
 - **Tarmoq qatlami** `src/utils/api/index.js` dagi axios instansiyasi token, `O-Session` headerlari, 401 va 400 (code 10) holatlariga ikkilamchi interceptorlar, refresh queue va `useCore` bilan bog‘langan xatolik xabarlari orqali abstraksiyalangan; servislar (`src/services/modules/**`) shu instansiyaning yordamchi funksiya sifatidagi mixinlaridan foydalangan holda Pinia actionlariga ulab beriladi.
 - **Komponent dizayni** `components/base-components` va `components/layouts` atomic approach’ni ko‘rsatadi: Ant Design ustiga qurilgan button, modal, drawer, table, breadcrumb va loader kabi qayta ishlatiladigan atomlar; yuqori darajadagi Layout komponentlari (navbar, sidebar) router child’larini slotlar orqali joylashtiradi.
-- **Marshrutlash va guard’lar** `src/routers/index.js` rollarga asoslangan `beforeEnter` bilan `/dashboard` subtree’ni himoyalaydi, meta roliga mos reroutelar va `i18n` bilan sarlavha boshqaruvi qo‘llaniladi; router fabrikasi i18n ni beforeEach ichida injekt qiladi.
+- **Marshrutlash va guard'lar** `src/routers/index.js` rollarga asoslangan `beforeEnter` bilan `/dashboard` subtree'ni himoyalaydi, meta roliga mos reroutelar qo'llaniladi.
 
 ```23:109:src/routers/index.js
         {
@@ -89,7 +89,7 @@ Hozirgi sessiya “ask mode”da bo‘lgani uchun fayl yarata olmayman; quyidagi
             },
 ```
 
-- **UI va stil** `main.js` da Ant Design Vue, i18n, Pinia va router birlashtirilgan; `styles/main.scss` Tailwind’ni SCSS modul tizimi (mixins, ant override, responsive, feature-specific SCSS) bilan birgalikda ishlatadi, shuningdek Ant Design reset CSS import qilingan.
+- **UI va stil** `main.js` da Ant Design Vue, Pinia va router birlashtirilgan; `styles/main.scss` Tailwind'ni SCSS modul tizimi (mixins, ant override, responsive, feature-specific SCSS) bilan birgalikda ishlatadi, shuningdek Ant Design reset CSS import qilingan.
 
 ```1:34:src/main.js
 import {createApp} from 'vue';
@@ -171,8 +171,8 @@ export default {
 ## SMS Implementation Roadmap (mavjud patternlarga tayangan holda)
 
 ### Phase 0 — Muvofiqlik va tayyorgarlik
-- **Bootstrap**: `package.json`, `vite.config.js`, `tailwind.config.js`, `postcss.config.js` mavjud nusxa; yangi SMS uchun shu fayllarni o‘zgartirmasdan qoldiring, faqat env o‘zgaruvchilarini moslang.
-- **I18n va Day.js**: `src/utils/i18n` va `dayjs` sozlamalarini o‘zgartirmang, SMS terminologiyasini mavjud `uz/ru` fayllariga qo‘shing (o‘sha formatda).
+- **Bootstrap**: `package.json`, `vite.config.js`, `tailwind.config.js`, `postcss.config.js` mavjud nusxa; yangi SMS uchun shu fayllarni o'zgartirmasdan qoldiring, faqat env o'zgaruvchilarini moslang.
+- **Day.js**: `dayjs` sozlamalarini SMS terminologiyasiga moslashtiring.
 
 ### Phase 1 — Core arxitektura
 - **Routing skeleton**: `src/routers/index.js` dagi guardlarni qayta ishlatib, `/dashboard` ichida `admin`, `teacher`, `student` subtree’larini role meta bilan qurish; guard logikasi aynan shu fayldagi patternni takrorlasin.
@@ -202,8 +202,8 @@ export default {
 - **Course/Class forms**: `EmployeeForm` strukturasini ko‘chirib, `fullModel` va `copyModel` bilan Ant form + Pinia store’larni bog‘lang.
 
 ### Phase 5 — Routing & Guards detali
-- **Role metas**: `admin`, `teacher`, `student` dashboard child’larini meta.role bilan belgilab, `beforeEnter` ni mos ravishda `org_store_role` o‘rniga `sms_role` kabi localStorage kalitiga qarating.
-- **Redirect flows**: `useCore().redirect` va `router.push` patternini SMS login va unauthorized flow’lari uchun ishlating; i18n sarlavhalarini `router.beforeEach` da yangilang.
+- **Role metas**: `admin`, `teacher`, `student` dashboard child'larini meta.role bilan belgilab, `beforeEnter` ni mos ravishda `org_store_role` o'rniga `sms_role` kabi localStorage kalitiga qarating.
+- **Redirect flows**: `useCore().redirect` va `router.push` patternini SMS login va unauthorized flow'lari uchun ishlating.
 
 ### Phase 6 — UI/Styling yakunlash
 - **Tailwind + SCSS**: `styles/main.scss` dagi import ketma-ketligini saqlab, SMS ga xos SCSS modullarini `styles/features/<module>.scss` da saqlang.

@@ -2,7 +2,7 @@
 # School Management System API Documentation
 
 ## Base URL
-http://localhost:5000/api
+http://localhost:5001/api
 
 ## Authentication
 All protected routes require a Bearer token in the Authorization header:

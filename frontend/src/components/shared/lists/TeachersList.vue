@@ -6,7 +6,9 @@
         All Teachers
       </a-typography-title>
       <div class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto">
-        <BaseTableSearch v-model="searchValue" @search="handleSearch" />
+        <BaseTableSearch 
+          v-model="searchValue" 
+        />
         <a-space class="self-end">
           <a-button 
             shape="circle" 
@@ -44,12 +46,11 @@
     <div class="mt-4 overflow-x-auto">
       <BaseTable 
         :columns="tableColumns" 
-        :data-source="teachersData" 
-        :loading="loading"
+        :data-source="formattedTeachers" 
+        :loading="teachersStore.isLoading"
         :pagination="paginationConfig"
         :permissions="permissions"
         :scroll="{ x: 'max-content' }"
-        @change-page="handleTableChange"
         @view-row="handleView"
         @edit-row="handleEdit"
         @delete-row="handleDelete"
@@ -59,9 +60,9 @@
 </template>
 
 <script setup>
-import { ref, computed } from 'vue';
-import { teachersData } from '@/lib/data';
+import { ref, computed, onMounted } from 'vue';
 import { useRouter } from 'vue-router';
+import { useTeachersStore } from '@/store/teacher/teachers.pinia';
 import BaseTableSearch from '@components/base-components/BaseTableSearch.vue';
 import IconFilter from '@components/icon/IconFilter.vue';
 import IconSort from '@components/icon/IconSort.vue';
@@ -69,6 +70,7 @@ import IconPlus from '@components/icon/IconPlus.vue';
 import BaseTable from '@components/base-components/BaseTable.vue';
 
 const router = useRouter();
+const teachersStore = useTeachersStore();
 
 const props = defineProps({
   permissions: {
@@ -89,9 +91,6 @@ const emit = defineEmits(['addTeacher', 'editTeacher', 'deleteTeacher']);
 
 // State
 const searchValue = ref('');
-const loading = ref(false);
-const currentPage = ref(1);
-const pageSize = ref(10);
 
 // Table columns konfiguratsiyasi
 const tableColumns = computed(() => [
@@ -100,7 +99,12 @@ const tableColumns = computed(() => [
     key: 'photo',
     dataIndex: 'photo',
     width: 80,
-    align: 'center'
+    align: 'center',
+    customRender: ({ record }) => {
+      return record.img 
+        ? `<img src="${record.img}" alt="${record.name}" style="width: 40px; height: 40px; border-radius: 50%;" />`
+        : `<div style="width: 40px; height: 40px; border-radius: 50%; background: #ccc; display: flex; align-items: center; justify-content: center;">${record.name?.[0] || 'T'}</div>`;
+    }
   },
   {
     title: 'F.I.O.',
@@ -108,12 +112,13 @@ const tableColumns = computed(() => [
     dataIndex: 'name',
     sorter: true,
     width: 200,
-    align: 'center'
+    align: 'center',
+    customRender: ({ record }) => `${record.name} ${record.surname}`
   },
   {
     title: 'ID',
-    key: 'teacherId',
-    dataIndex: 'teacherId',
+    key: 'id',
+    dataIndex: 'id',
     width: 150,
     align: 'center'
   },
@@ -121,7 +126,7 @@ const tableColumns = computed(() => [
     title: 'Email',
     key: 'email',
     dataIndex: 'email',
-    width: 200 ,
+    width: 200,
     align: 'center'
   },
   {
@@ -136,14 +141,13 @@ const tableColumns = computed(() => [
     key: 'subjects',
     dataIndex: 'subjects',
     width: 250,
-    align: 'center'
-  },
-  {
-    title: 'Sinflar',
-    key: 'classes',
-    dataIndex: 'classes',
-    width: 200,
-    align: 'center'
+    align: 'center',
+    customRender: ({ record }) => {
+      if (!record.subjects || record.subjects.length === 0) {
+        return '-';
+      }
+      return record.subjects.map(s => s.name).join(', ');
+    }
   },
   {
     title: 'Manzil',
@@ -161,45 +165,34 @@ const tableColumns = computed(() => [
   }
 ]);
 
+// Formatlangan o'qituvchilar ro'yxati
+const formattedTeachers = computed(() => {
+  return teachersStore.getTeachers.map(teacher => ({
+    ...teacher,
+    key: teacher._id || teacher.id, // Table uchun unique key
+  }));
+});
+
 // Pagination config
 const paginationConfig = computed(() => ({
-  current: currentPage.value,
-  pageSize: pageSize.value,
-  total: searchValue.value 
-    ? teachersData.filter(teacher => 
-        teacher.name.toLowerCase().includes(searchValue.value.toLowerCase()) ||
-        teacher.email.toLowerCase().includes(searchValue.value.toLowerCase()) ||
-        teacher.phone.includes(searchValue.value) ||
-        teacher.teacherId.includes(searchValue.value)
-      ).length
-    : teachersData.length,
+  current: teachersStore.pagination.currentPage,
+  pageSize: teachersStore.pagination.pageSize,
+  total: teachersStore.pagination.total,
   showSizeChanger: true,
-  showTotal: (total) => `Jami ${total} ta o'qituvchi`
+  showTotal: (total) => `Jami ${total} ta o'qituvchi`,
+  pageSizeOptions: ['10', '20', '50', '100'],
 }));
 
-// Handlers
-const handleSearch = (value) => {
-  searchValue.value = value;
-  currentPage.value = 1; // Qidiruvda birinchi sahifaga qaytish
-};
-
-const handleTableChange = ({ pag, filters, sorter }) => {
-  if (pag) {
-    currentPage.value = pag.current;
-    pageSize.value = pag.pageSize;
-  }
-  // Sorter va filterlarni qo'shish mumkin
-};
-
-const handlePaginationChange = (page, size) => {
-  currentPage.value = page;
-  pageSize.value = size;
-};
+// Component mount bo'lganda o'qituvchilarni yuklash
+onMounted(() => {
+  teachersStore.fetchTeachers();
+});
 
 const handleView = (record) => {
-  console.log('View teacher:', record);
-  router.push({name: "TeacherDetail", params: {id: record.id}})
-  // View logic
+  router.push({ 
+    name: "TeacherDetail", 
+    params: { id: record._id || record.id } 
+  });
 };
 
 const handleEdit = (record) => {
