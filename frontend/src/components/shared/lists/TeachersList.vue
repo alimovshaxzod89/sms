@@ -112,32 +112,32 @@ const tableColumns = computed(() => [
     customRender: ({ record }) => `${record.name} ${record.surname}`
   },
   {
-    title: 'ID',
-    key: 'id',
-    dataIndex: 'id',
-    width: 150,
-    align: 'center'
+    title: 'Fanlar',
+    key: 'subjects',
+    dataIndex: 'subjects',
+    width: 250,
+    align: 'center',
   },
   {
-    title: 'Email',
-    key: 'email',
-    dataIndex: 'email',
-    width: 200,
-    align: 'center'
+    title: 'Sinflar',
+    key: 'classes',
+    dataIndex: 'classes',
+    width: 250,
+    align: 'center',
   },
+  // {
+  //   title: 'Email',
+  //   key: 'email',
+  //   dataIndex: 'email',
+  //   width: 200,
+  //   align: 'center'
+  // },
   {
     title: 'Telefon',
     key: 'phone',
     dataIndex: 'phone',
     width: 150,
     align: 'center'
-  },
-  {
-    title: 'Fanlar',
-    key: 'subjects',
-    dataIndex: 'subjects',
-    width: 250,
-    align: 'center',
   },
   {
     title: 'Manzil',

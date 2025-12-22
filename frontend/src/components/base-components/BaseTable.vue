@@ -45,9 +45,19 @@
             </template>
             <template v-else-if="column.key === 'classes'">
                 <div class="flex flex-wrap gap-1 justify-center">
-                    <a-tag v-for="cls in record.classes" :key="cls" color="green">
-                        {{ cls }}
-                    </a-tag>
+                    <template v-if="!record.classes || record.classes.length === 0">
+                        <span class="text-gray-400">-</span>
+                    </template>
+                    <template v-else>
+                        <a-tag 
+                            v-for="cls in record.classes" 
+                            :key="cls._id || cls.id || cls"
+                            color="green"
+                            class="mb-1"
+                        >
+                            {{ cls.name }}
+                        </a-tag>
+                    </template>
                 </div>
             </template>
             <template v-else-if="column.key === 'action'">

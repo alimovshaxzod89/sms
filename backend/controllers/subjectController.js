@@ -39,6 +39,14 @@ exports.createSubject = async (req, res, next) => {
       teachers: teachers || []
     });
 
+    // ✅ Update Teacher.subjects arrays - add this subject ID to all teachers
+    if (teachers && teachers.length > 0) {
+      await Teacher.updateMany(
+        { _id: { $in: teachers } },
+        { $addToSet: { subjects: subject._id } }
+      );
+    }
+
     // Populate and return
     const subjectData = await Subject.findById(subject._id)
       .populate('teachers', 'name surname email')
@@ -204,6 +212,33 @@ exports.updateSubject = async (req, res, next) => {
       { new: true, runValidators: true }
     ).populate('teachers', 'name surname email');
 
+    // ✅ Update Teacher.subjects arrays if teachers were updated
+    if (teachers !== undefined) {
+      const oldTeacherIds = currentSubject.teachers.map(t => t.toString());
+      const newTeacherIds = teachers.map(t => t.toString());
+      
+      // Find teachers that were removed
+      const removedTeacherIds = oldTeacherIds.filter(id => !newTeacherIds.includes(id));
+      // Find teachers that were added
+      const addedTeacherIds = newTeacherIds.filter(id => !oldTeacherIds.includes(id));
+
+      // Remove subject ID from removed teachers
+      if (removedTeacherIds.length > 0) {
+        await Teacher.updateMany(
+          { _id: { $in: removedTeacherIds } },
+          { $pull: { subjects: req.params.id } }
+        );
+      }
+
+      // Add subject ID to newly added teachers
+      if (addedTeacherIds.length > 0) {
+        await Teacher.updateMany(
+          { _id: { $in: addedTeacherIds } },
+          { $addToSet: { subjects: req.params.id } }
+        );
+      }
+    }
+
     res.status(200).json({
       success: true,
       data: subject
@@ -241,14 +276,25 @@ exports.deleteSubject = async (req, res, next) => {
       });
     }
 
-    const subject = await Subject.findByIdAndDelete(req.params.id);
-
+    const subject = await Subject.findById(req.params.id);
+    
     if (!subject) {
       return res.status(404).json({
         success: false,
         error: 'Subject not found'
       });
     }
+
+    // ✅ Remove subject ID from all Teacher.subjects arrays before deleting
+    if (subject.teachers && subject.teachers.length > 0) {
+      await Teacher.updateMany(
+        { _id: { $in: subject.teachers } },
+        { $pull: { subjects: req.params.id } }
+      );
+    }
+
+    // Delete subject
+    await Subject.findByIdAndDelete(req.params.id);
 
     res.status(200).json({
       success: true,

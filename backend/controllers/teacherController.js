@@ -141,12 +141,41 @@ exports.getAllTeachers = async (req, res, next) => {
 
     const count = await Teacher.countDocuments(query);
     
+    // ✅ Har bir teacher uchun classes ma'lumotlarini qo'shish
+    const Grade = require('../models/Grade');
+    const teachersWithClasses = await Promise.all(
+      teachers.map(async (teacher) => {
+        // Class modelidan supervisorId bo'yicha qidirish (teacher.id String sifatida)
+        const classes = await Class.find({ supervisorId: teacher.id })
+          .select('_id name capacity gradeId')
+          .lean();
+        
+        // Grade ma'lumotlarini populate qilish
+        const classesWithGrade = await Promise.all(
+          classes.map(async (cls) => {
+            if (cls.gradeId) {
+              const grade = await Grade.findById(cls.gradeId)
+                .select('level')
+                .lean();
+              cls.gradeId = grade || cls.gradeId;
+            }
+            return cls;
+          })
+        );
+        
+        return {
+          ...teacher,
+          classes: classesWithGrade
+        };
+      })
+    );
+    
     res.status(200).json({
       success: true,
       count,
       totalPages: Math.ceil(count / limitNum),
       currentPage: pageNum,
-      data: teachers
+      data: teachersWithClasses
     });
   } catch (error) {
     next(error);
@@ -180,6 +209,27 @@ exports.getTeacher = async (req, res, next) => {
       });
     }
 
+    // ✅ Teacher uchun classes ma'lumotlarini qo'shish
+    const Grade = require('../models/Grade');
+    const classes = await Class.find({ supervisorId: teacher.id })
+      .select('_id name capacity gradeId')
+      .lean();
+    
+    // Grade ma'lumotlarini populate qilish
+    const classesWithGrade = await Promise.all(
+      classes.map(async (cls) => {
+        if (cls.gradeId) {
+          const grade = await Grade.findById(cls.gradeId)
+            .select('level')
+            .lean();
+          cls.gradeId = grade || cls.gradeId;
+        }
+        return cls;
+      })
+    );
+    
+    teacher.classes = classesWithGrade;
+
     // ✅ Teachers can only view their own full profile
     // Students and other roles get limited info
     if (req.user.role === 'student') {
@@ -190,7 +240,8 @@ exports.getTeacher = async (req, res, next) => {
         name: teacher.name,
         surname: teacher.surname,
         email: teacher.email,
-        subjects: teacher.subjects
+        subjects: teacher.subjects,
+        classes: teacher.classes
       };
       
       return res.status(200).json({
