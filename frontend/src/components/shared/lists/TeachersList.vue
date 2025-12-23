@@ -54,13 +54,14 @@
         @view-row="handleView"
         @edit-row="handleEdit"
         @delete-row="handleDelete"
+        @change-page="handleTableChange"
       />
     </div>
   </a-card>
 </template>
 
 <script setup>
-import { ref, computed, onMounted } from 'vue';
+import { ref, computed, onMounted, watch } from 'vue';
 import { useRouter } from 'vue-router';
 import { useTeachersStore } from '@/store/teacher/teachers.pinia';
 import BaseTableSearch from '@components/base-components/BaseTableSearch.vue';
@@ -172,6 +173,35 @@ const paginationConfig = computed(() => ({
   showTotal: (total) => `Jami ${total} ta o'qituvchi`,
   pageSizeOptions: ['10', '20', '50', '100'],
 }));
+
+const handleTableChange = ({ pag, filters, sorter }) => {
+  if(pag){
+    teachersStore.fetchTeachers({
+      page: pag.current,
+      pageSize: pag.pageSize,
+      search: searchValue.value,
+    })
+  }
+
+  // Kelajakda sorter va filterlarni ham qo'shish mumkin
+  if (sorter) {
+    // Sorting logikasi
+  }
+  
+  if (filters) {
+    // Filter logikasi
+  }
+}
+
+// Search o'zgarishlarini kuzatish
+watch(searchValue, (newValue) => {
+  // Qidiruv o'zgarganda birinchi sahifaga qaytish va yangi ma'lumotlarni yuklash
+  teachersStore.fetchTeachers({
+    page: 1,
+    pageSize: teachersStore.pagination.pageSize,
+    search: newValue,
+  });
+});
 
 // Component mount bo'lganda o'qituvchilarni yuklash
 onMounted(() => {
