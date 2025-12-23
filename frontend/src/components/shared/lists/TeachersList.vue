@@ -62,7 +62,7 @@
 
 <script setup>
 import { ref, computed, onMounted, watch } from 'vue';
-import { useRouter } from 'vue-router';
+import { useRoute, useRouter } from 'vue-router';
 import { useTeachersStore } from '@/store/teacher/teachers.pinia';
 import BaseTableSearch from '@components/base-components/BaseTableSearch.vue';
 import IconFilter from '@components/icon/IconFilter.vue';
@@ -72,6 +72,7 @@ import BaseTable from '@components/base-components/BaseTable.vue';
 
 
 const router = useRouter();
+const route = useRoute();
 const teachersStore = useTeachersStore();
 
 const props = defineProps({
@@ -174,13 +175,62 @@ const paginationConfig = computed(() => ({
   pageSizeOptions: ['10', '20', '50', '100'],
 }));
 
+/**
+ * URL query params'ni yangilash (browser history'ga yozilmaydi)
+ */
+const updateURLParams = (params) => {
+  const query = {
+    ...route.query,
+    ...params,
+  };
+  
+  // Bo'sh qiymatlarni olib tashlash
+  Object.keys(query).forEach(key => {
+    if (query[key] === '' || query[key] === null || query[key] === undefined) {
+      delete query[key];
+    }
+  });
+  
+  router.replace({ query });
+};
+
+/**
+ * URL query params'dan ma'lumotlarni o'qib, store'ga yuborish
+ */
+const loadFromURL = () => {
+  const query = route.query;
+  const page = parseInt(query.page) || 1;
+  const pageSize = parseInt(query.pageSize) || 10;
+  const search = query.search || '';
+  
+  // Local state'ni yangilash
+  searchValue.value = search;
+  
+  // Store'ga yuborish
+  teachersStore.fetchTeachers({
+    page,
+    pageSize,
+    search,
+  });
+};
+
+/**
+ * Pagination o'zgarganda URL'ni yangilash
+ */
 const handleTableChange = ({ pag, filters, sorter }) => {
   if(pag){
-    teachersStore.fetchTeachers({
+    updateURLParams({
       page: pag.current,
       pageSize: pag.pageSize,
-      search: searchValue.value,
+      search: searchValue.value || '',
     })
+    
+    // Store'ga yuborish
+    // teachersStore.fetchTeachers({
+    //   page: pag.current,
+    //   pageSize: pag.pageSize,
+    //   search: searchValue.value,
+    // })
   }
 
   // Kelajakda sorter va filterlarni ham qo'shish mumkin
@@ -193,9 +243,22 @@ const handleTableChange = ({ pag, filters, sorter }) => {
   }
 }
 
-// Search o'zgarishlarini kuzatish
-watch(searchValue, (newValue) => {
-  // Qidiruv o'zgarganda birinchi sahifaga qaytish va yangi ma'lumotlarni yuklash
+/**
+ * Search o'zgarganda URL'ni yangilash
+ */
+ watch(searchValue, (newValue) => {
+  const params = {
+    page: '1', // Qidiruvda birinchi sahifaga qaytish
+    pageSize: teachersStore.pagination.pageSize.toString(),
+  };
+  
+  if (newValue) {
+    params.search = newValue;
+  }
+  
+  updateURLParams(params);
+  
+  // Store'ga yuborish
   teachersStore.fetchTeachers({
     page: 1,
     pageSize: teachersStore.pagination.pageSize,
@@ -203,9 +266,39 @@ watch(searchValue, (newValue) => {
   });
 });
 
+/**
+ * URL query params o'zgarganda (browser back/forward) ma'lumotlarni yangilash
+ */
+watch(() => route.query, (newQuery) => {
+  // Faqat URL o'zgarganda ishlaydi (component ichida o'zgartirishlar emas)
+  const page = parseInt(newQuery.page) || 1;
+  const pageSize = parseInt(newQuery.pageSize) || 10;
+  const search = newQuery.search || '';
+  
+  // Agar store'dagi qiymatlar URL'dan farq qilsa, yangilash
+  if (
+    teachersStore.pagination.currentPage !== page ||
+    teachersStore.pagination.pageSize !== pageSize ||
+    searchValue.value !== search
+  ) {
+    searchValue.value = search;
+    teachersStore.fetchTeachers({
+      page,
+      pageSize,
+      search,
+    });
+  }
+}, { deep: true });
+
 // Component mount bo'lganda o'qituvchilarni yuklash
 onMounted(() => {
-  teachersStore.fetchTeachers();
+  // Agar URL'da query params bo'lsa, ularni ishlatish
+  if (Object.keys(route.query).length > 0) {
+    loadFromURL();
+  } else {
+    // Aks holda default qiymatlar bilan yuklash
+    teachersStore.fetchTeachers();
+  }
 });
 
 const handleView = (record) => {
