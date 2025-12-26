@@ -128,6 +128,17 @@ exports.getMe = async (req, res, next) => {
         break;
       case 'parent':
         user = await Parent.findById(req.user._id);
+        if (user) {
+          // Populate students for parent
+          const Student = require('../models/Student');
+          const students = await Student.find({ parentId: user.id })
+            .select('id name surname email phone gradeId classId')
+            .populate('gradeId', 'level name')
+            .populate('classId', 'name capacity')
+            .lean();
+          user = user.toObject();
+          user.students = students;
+        }
         break;
       case 'admin':
         user = { id: 'admin', username: 'admin', role: 'admin' };

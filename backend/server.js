@@ -24,6 +24,7 @@ if (missingEnvVars.length > 0) {
 const authRoutes = require('./routes/authRoutes');
 const teacherRoutes = require('./routes/teacherRoutes');
 const studentRoutes = require('./routes/studentRoutes');
+const parentRoutes = require('./routes/parentRoutes');
 const subjectRoutes = require('./routes/subjectRoutes');
 const classRoutes = require('./routes/classRoutes');
 const examRoutes = require('./routes/examRoutes');
@@ -108,6 +109,7 @@ app.get('/api/health', (req, res) => {
 app.use('/api/auth', authRoutes);
 app.use('/api/teachers', teacherRoutes);
 app.use('/api/students', studentRoutes);
+app.use('/api/parents', parentRoutes);
 app.use('/api/subjects', subjectRoutes);
 app.use('/api/classes', classRoutes);
 app.use('/api/exams', examRoutes);
