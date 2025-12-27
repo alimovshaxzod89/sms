@@ -54,9 +54,14 @@
             </template>
             <template v-else-if="column.key === 'teachers'">
                 <div class="flex flex-wrap gap-1 justify-center">
-                    <a-tag v-for="teacher in record.teachers" :key="teacher" color="green">
-                        {{ teacher }}
-                    </a-tag>
+                    <template v-if="!record.teachers || record.teachers.length === 0">
+                        <span class="text-gray-400">-</span>
+                    </template>
+                    <template v-else>
+                        <a-tag v-for="teacher in record.teachers" :key="teacher" color="green">
+                            {{typeof teacher === 'string' ? teacher : `${teacher.name} ${teacher.surname}` || '-'}}
+                        </a-tag>
+                    </template>
                 </div>
             </template>
             <template v-else-if="column.key === 'classes'">
@@ -180,6 +185,8 @@ const props = defineProps({
         default: () => ({})
     }
 });
+
+console.log(props.dataSource);
 
 const emits = defineEmits(['changePage', 'viewRow', 'editRow', 'deleteRow']);
 
