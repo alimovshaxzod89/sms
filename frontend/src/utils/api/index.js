@@ -36,7 +36,7 @@ api.interceptors.response.use(
     if (error.response?.status === 401) {
       // Token va role'ni o'chirish
       localStorage.removeItem('token');
-      localStorage.removeItem('Role');
+      localStorage.removeItem('role');
       // Login sahifasiga yo'naltirish
       window.location.href = '/';
     }

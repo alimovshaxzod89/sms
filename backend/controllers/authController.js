@@ -88,7 +88,7 @@ exports.login = async (req, res, next) => {
     }
 
     // Create token
-    const token = generateToken(user._id, userRole);
+    const token = generateToken(user._id || user.id, userRole);
 
     // Remove password from output
     user.password = undefined;
@@ -97,13 +97,19 @@ exports.login = async (req, res, next) => {
       success: true,
       token,
       user: {
-        id: user._id,
+        id: user._id || user.id,
         username: user.username,
         name: user.name,
         surname: user.surname,
         email: user.email,
         role: userRole
       }
+    });
+
+    res.status(200).json({
+      success: true,
+      token,
+      user: userResponse
     });
   } catch (error) {
     next(error);
@@ -116,18 +122,38 @@ exports.login = async (req, res, next) => {
 exports.getMe = async (req, res, next) => {
   try {
     let user;
+    const mongoose = require('mongoose');
+    const userId = req.user._id || req.user.id;
 
     switch (req.user.role) {
       case 'teacher':
-        user = await Teacher.findById(req.user._id);
+        // Try by _id first, then by id field
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          user = await Teacher.findById(userId);
+        }
+        if (!user) {
+          user = await Teacher.findOne({ id: userId });
+        }
         break;
       case 'student':
-        user = await Student.findById(req.user._id)
-          .populate('gradeId')
-          .populate('classId');
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          user = await Student.findById(userId)
+            .populate('gradeId')
+            .populate('classId');
+        }
+        if (!user) {
+          user = await Student.findOne({ id: userId })
+            .populate('gradeId')
+            .populate('classId');
+        }
         break;
       case 'parent':
-        user = await Parent.findById(req.user._id);
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          user = await Parent.findById(userId);
+        }
+        if (!user) {
+          user = await Parent.findOne({ id: userId });
+        }
         if (user) {
           // Populate students for parent
           const Student = require('../models/Student');
@@ -182,15 +208,33 @@ exports.updatePassword = async (req, res, next) => {
 
     let user;
 
+    const mongoose = require('mongoose');
+    const userId = req.user._id || req.user.id;
+
     switch (req.user.role) {
       case 'teacher':
-        user = await Teacher.findById(req.user._id).select('+password');
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          user = await Teacher.findById(userId).select('+password');
+        }
+        if (!user) {
+          user = await Teacher.findOne({ id: userId }).select('+password');
+        }
         break;
       case 'student':
-        user = await Student.findById(req.user._id).select('+password');
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          user = await Student.findById(userId).select('+password');
+        }
+        if (!user) {
+          user = await Student.findOne({ id: userId }).select('+password');
+        }
         break;
       case 'parent':
-        user = await Parent.findById(req.user._id).select('+password');
+        if (mongoose.Types.ObjectId.isValid(userId)) {
+          user = await Parent.findById(userId).select('+password');
+        }
+        if (!user) {
+          user = await Parent.findOne({ id: userId }).select('+password');
+        }
         break;
       default:
         return res.status(400).json({
@@ -221,7 +265,7 @@ exports.updatePassword = async (req, res, next) => {
     user.password = hashedPassword;
     await user.save();
 
-    const token = generateToken(user._id, req.user.role);
+    const token = generateToken(user._id || user.id, req.user.role);
 
     res.status(200).json({
       success: true,

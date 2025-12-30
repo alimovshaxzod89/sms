@@ -6,7 +6,6 @@ const app = require('../server');
 const Teacher = require('../models/Teacher');
 const Student = require('../models/Student');
 const Parent = require('../models/Parent');
-const Admin = require('../models/Admin');
 
 describe('Auth API Tests', () => {
   beforeAll(async () => {
@@ -21,7 +20,6 @@ describe('Auth API Tests', () => {
     await Teacher.deleteMany();
     await Student.deleteMany();
     await Parent.deleteMany();
-    await Admin.deleteMany();
   });
 
   describe('POST /api/auth/login', () => {

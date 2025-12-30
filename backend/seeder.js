@@ -290,8 +290,8 @@ const importData = async () => {
       {
         name: 'Math 101',
         day: 'MONDAY',
-        startTime: new Date('2024-01-01T08:00:00'),
-        endTime: new Date('2024-01-01T09:00:00'),
+        startTime: '08:00',
+        endTime: '09:00',
         subjectId: subjects[0]._id,
         classId: classes[0]._id,
         teacherId: teachers[0].id
@@ -299,8 +299,8 @@ const importData = async () => {
       {
         name: 'English 101',
         day: 'MONDAY',
-        startTime: new Date('2024-01-01T09:00:00'),
-        endTime: new Date('2024-01-01T10:00:00'),
+        startTime: '09:00',
+        endTime: '10:00',
         subjectId: subjects[1]._id,
         classId: classes[0]._id,
         teacherId: teachers[1].id
@@ -308,8 +308,8 @@ const importData = async () => {
       {
         name: 'Physics 101',
         day: 'TUESDAY',
-        startTime: new Date('2024-01-02T08:00:00'),
-        endTime: new Date('2024-01-02T09:00:00'),
+        startTime: '08:00',
+        endTime: '09:00',
         subjectId: subjects[2]._id,
         classId: classes[2]._id,
         teacherId: teachers[2].id
@@ -317,8 +317,8 @@ const importData = async () => {
       {
         name: 'Chemistry 101',
         day: 'WEDNESDAY',
-        startTime: new Date('2024-01-03T10:00:00'),
-        endTime: new Date('2024-01-03T11:00:00'),
+        startTime: '10:00',
+        endTime: '11:00',
         subjectId: subjects[3]._id,
         classId: classes[3]._id,
         teacherId: teachers[0].id
@@ -326,8 +326,8 @@ const importData = async () => {
       {
         name: 'Biology 101',
         day: 'THURSDAY',
-        startTime: new Date('2024-01-04T08:00:00'),
-        endTime: new Date('2024-01-04T09:00:00'),
+        startTime: '08:00',
+        endTime: '09:00',
         subjectId: subjects[4]._id,
         classId: classes[1]._id,
         teacherId: teachers[1].id

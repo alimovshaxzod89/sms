@@ -7,7 +7,7 @@ const mongoose = require('mongoose');
 // Create Lesson
 exports.createLesson = async (req, res, next) => {
   try {
-    const { name, teacherId, subjectId, classId } = req.body;
+    const { name, teacherId, subjectId, classId, day, startTime, endTime } = req.body;
 
     // ✅ teacherId uchun ObjectId format tekshirish (Teacher _id yuboriladi)
     if (!mongoose.Types.ObjectId.isValid(teacherId)) {
@@ -59,6 +59,51 @@ exports.createLesson = async (req, res, next) => {
       });
     }
 
+    // Validate day, startTime, endTime
+    if (!day || !startTime || !endTime) {
+      return res.status(400).json({
+        success: false,
+        error: 'Please provide day, startTime, and endTime'
+      });
+    }
+
+    const validDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+    if (!validDays.includes(day.toUpperCase())) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid day. Must be one of: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY'
+      });
+    }
+
+    // Validate time format (HH:MM)
+    const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+    if (!timeRegex.test(startTime)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid startTime format. Use HH:MM format (e.g., 08:00)'
+      });
+    }
+
+    if (!timeRegex.test(endTime)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid endTime format. Use HH:MM format (e.g., 09:00)'
+      });
+    }
+
+    // Validate that endTime is after startTime
+    const [startHours, startMinutes] = startTime.split(':').map(Number);
+    const [endHours, endMinutes] = endTime.split(':').map(Number);
+    const startTotalMinutes = startHours * 60 + startMinutes;
+    const endTotalMinutes = endHours * 60 + endMinutes;
+
+    if (endTotalMinutes <= startTotalMinutes) {
+      return res.status(400).json({
+        success: false,
+        error: 'endTime must be after startTime'
+      });
+    }
+
     // Check if lesson with same name already exists for this class
     const existingLesson = await Lesson.findOne({
       name,
@@ -77,7 +122,10 @@ exports.createLesson = async (req, res, next) => {
       name,
       teacherId: teacher.id,  // String type
       subjectId,
-      classId
+      classId,
+      day: day.toUpperCase(),
+      startTime,
+      endTime
     });
 
     // ✅ Populate the response
@@ -239,7 +287,7 @@ exports.updateLesson = async (req, res, next) => {
       });
     }
 
-    const { name, teacherId, subjectId, classId } = req.body;
+    const { name, teacherId, subjectId, classId, day, startTime, endTime } = req.body;
 
     // Build update object
     const updateData = {};
@@ -304,6 +352,64 @@ exports.updateLesson = async (req, res, next) => {
 
     if (name !== undefined) {
       updateData.name = name;
+    }
+
+    // Validate and update day
+    if (day !== undefined) {
+      const validDays = ['MONDAY', 'TUESDAY', 'WEDNESDAY', 'THURSDAY', 'FRIDAY', 'SATURDAY', 'SUNDAY'];
+      if (!validDays.includes(day.toUpperCase())) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid day. Must be one of: MONDAY, TUESDAY, WEDNESDAY, THURSDAY, FRIDAY, SATURDAY, SUNDAY'
+        });
+      }
+      updateData.day = day.toUpperCase();
+    }
+
+    // Validate and update startTime
+    if (startTime !== undefined) {
+      const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(startTime)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid startTime format. Use HH:MM format (e.g., 08:00)'
+        });
+      }
+      updateData.startTime = startTime;
+    }
+
+    // Validate and update endTime
+    if (endTime !== undefined) {
+      const timeRegex = /^([0-1][0-9]|2[0-3]):[0-5][0-9]$/;
+      if (!timeRegex.test(endTime)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid endTime format. Use HH:MM format (e.g., 09:00)'
+        });
+      }
+      updateData.endTime = endTime;
+    }
+
+    // Validate that endTime is after startTime (if both are being updated)
+    if (updateData.startTime !== undefined || updateData.endTime !== undefined) {
+      // Get current lesson to compare times
+      const currentLesson = await Lesson.findById(req.params.id).lean();
+      if (currentLesson) {
+        const finalStartTime = updateData.startTime || currentLesson.startTime;
+        const finalEndTime = updateData.endTime || currentLesson.endTime;
+
+        const [startHours, startMinutes] = finalStartTime.split(':').map(Number);
+        const [endHours, endMinutes] = finalEndTime.split(':').map(Number);
+        const startTotalMinutes = startHours * 60 + startMinutes;
+        const endTotalMinutes = endHours * 60 + endMinutes;
+
+        if (endTotalMinutes <= startTotalMinutes) {
+          return res.status(400).json({
+            success: false,
+            error: 'endTime must be after startTime'
+          });
+        }
+      }
     }
 
     // Check if there's anything to update

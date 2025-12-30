@@ -1,4 +1,5 @@
 const jwt = require('jsonwebtoken');
+const mongoose = require('mongoose');
 const Teacher = require('../models/Teacher');
 const Student = require('../models/Student');
 const Parent = require('../models/Parent');
@@ -35,15 +36,34 @@ exports.protect = async (req, res, next) => {
 
       // Find user based on role
       let user;
+      const userId = decoded.id;
+
       switch (decoded.role) {
         case 'teacher':
-          user = await Teacher.findById(decoded.id);
+          // Try to find by _id (ObjectId) or id (String)
+          if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await Teacher.findById(userId);
+          }
+          // If not found by _id, try by id field
+          if (!user) {
+            user = await Teacher.findOne({ id: userId });
+          }
           break;
         case 'student':
-          user = await Student.findById(decoded.id);
+          if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await Student.findById(userId);
+          }
+          if (!user) {
+            user = await Student.findOne({ id: userId });
+          }
           break;
         case 'parent':
-          user = await Parent.findById(decoded.id);
+          if (mongoose.Types.ObjectId.isValid(userId)) {
+            user = await Parent.findById(userId);
+          }
+          if (!user) {
+            user = await Parent.findOne({ id: userId });
+          }
           break;
         case 'admin':
           user = { _id: 'admin', role: 'admin' };
@@ -55,16 +75,30 @@ exports.protect = async (req, res, next) => {
           });
       }
 
-      if (!user && decoded.role !== 'admin') {
+      if (!user) {
         return res.status(401).json({
           success: false,
           error: 'User no longer exists'
         });
       }
 
-      req.user = { ...user._doc, role: decoded.role };
+      // Handle both Mongoose documents and plain objects
+      if (user._doc) {
+        req.user = { ...user._doc, role: decoded.role };
+      } else if (user.toObject) {
+        req.user = { ...user.toObject(), role: decoded.role };
+      } else {
+        req.user = { ...user, role: decoded.role };
+      }
+      
+      // Ensure _id is set properly for consistency
+      if (!req.user._id && req.user.id) {
+        req.user._id = req.user.id;
+      }
+      
       next();
     } catch (err) {
+      console.error('Auth middleware error:', err);
       return res.status(401).json({
         success: false,
         error: 'Not authorized to access this route'
