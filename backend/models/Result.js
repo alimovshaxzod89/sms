@@ -18,7 +18,7 @@ const resultSchema = new mongoose.Schema({
     default: null
   },
   studentId: {
-    type: String,
+    type: mongoose.Schema.Types.ObjectId,
     ref: 'Student',
     required: true
   }

@@ -40,9 +40,9 @@ exports.validateResult = (req, res, next) => {
     return validationError(res, 'Score must be between 0 and 100');
   }
 
-  // StudentId validation (it's a String, not ObjectId)
-  if (typeof studentId !== 'string' || studentId.trim() === '') {
-    return validationError(res, 'Student ID must be a non-empty string');
+  // StudentId validation (it's an ObjectId)
+  if (!mongoose.Types.ObjectId.isValid(studentId)) {
+    return validationError(res, 'Invalid student ID format');
   }
 
   // ExamId validation (if provided)
@@ -89,8 +89,8 @@ exports.validateResultUpdate = (req, res, next) => {
 
   // StudentId validation (if provided)
   if (studentId !== undefined) {
-    if (typeof studentId !== 'string' || studentId.trim() === '') {
-      return validationError(res, 'Student ID must be a non-empty string');
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return validationError(res, 'Invalid student ID format');
     }
   }
 

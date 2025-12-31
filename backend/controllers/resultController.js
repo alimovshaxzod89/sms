@@ -5,6 +5,7 @@ const Assignment = require('../models/Assignment');
 const Student = require('../models/Student');
 const Lesson = require('../models/Lesson');
 const Teacher = require('../models/Teacher');
+const Subject = require('../models/Subject');
 
 // Create Result
 exports.createResult = async (req, res, next) => {
@@ -35,8 +36,16 @@ exports.createResult = async (req, res, next) => {
       });
     }
 
+    // Validate ObjectId format
+    if (!mongoose.Types.ObjectId.isValid(studentId)) {
+      return res.status(400).json({
+        success: false,
+        error: 'Invalid student ID format'
+      });
+    }
+
     // Verify student exists
-    const student = await Student.findOne({ id: studentId });
+    const student = await Student.findById(studentId);
     if (!student) {
       return res.status(404).json({
         success: false,
@@ -128,13 +137,25 @@ exports.createResult = async (req, res, next) => {
       .populate('assignmentId')
       .lean();
 
-    // Manual populate student (studentId is String, not ObjectId)
+    // Populate student - backward compatibility: support both ObjectId and String (id field)
     if (resultWithDetails.studentId) {
-      const studentDetails = await Student.findOne({ id: resultWithDetails.studentId })
-        .select('id username name surname email')
-        .lean();
+      let studentDetails = null;
       
-      resultWithDetails.student = studentDetails || { id: resultWithDetails.studentId };
+      // Try ObjectId first (new format)
+      if (mongoose.Types.ObjectId.isValid(resultWithDetails.studentId)) {
+        studentDetails = await Student.findById(resultWithDetails.studentId)
+          .select('id username name surname email')
+          .lean();
+      }
+      
+      // If not found, try String id field (old format)
+      if (!studentDetails) {
+        studentDetails = await Student.findOne({ id: resultWithDetails.studentId })
+          .select('id username name surname email')
+          .lean();
+      }
+      
+      resultWithDetails.student = studentDetails || { _id: resultWithDetails.studentId };
       delete resultWithDetails.studentId;
     }
 
@@ -209,12 +230,18 @@ exports.createResult = async (req, res, next) => {
 // Get All Results
 exports.getAllResults = async (req, res, next) => {
   try {
-    const { page = 1, limit = 10, studentId, examId, assignmentId, classId, teacherId } = req.query;
+    const { page = 1, limit = 10, studentId, examId, assignmentId, classId, teacherId, search } = req.query;
     
     let query = {};
     
     // Filter by studentId
     if (studentId) {
+      if (!mongoose.Types.ObjectId.isValid(studentId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid student ID format'
+        });
+      }
       query.studentId = studentId;
     }
 
@@ -305,76 +332,290 @@ exports.getAllResults = async (req, res, next) => {
     const pageNum = Math.max(1, parseInt(page) || 1);
     const limitNum = Math.min(100, Math.max(1, parseInt(limit) || 10));
 
-    // Get results
+    // Optimize search: find matching students/exams/assignments first, then filter results
+    if (search && typeof search === 'string' && search.trim()) {
+      const sanitizedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
+      const searchRegex = new RegExp(sanitizedSearch, 'i');
+      
+      // Find matching students
+      const matchingStudents = await Student.find({
+        $or: [
+          { name: { $regex: searchRegex } },
+          { surname: { $regex: searchRegex } },
+          { username: { $regex: searchRegex } }
+        ]
+      }).select('_id id').lean();
+      
+      const studentObjectIds = matchingStudents.filter(s => s._id).map(s => s._id);
+      const studentStringIds = matchingStudents.filter(s => s.id).map(s => s.id);
+      
+      // Find matching exams (by title)
+      const matchingExams = await Exam.find({
+        title: { $regex: searchRegex }
+      }).select('_id').lean();
+      const matchingExamIds = matchingExams.map(e => e._id);
+      
+      // Find matching assignments (by title)
+      const matchingAssignments = await Assignment.find({
+        title: { $regex: searchRegex }
+      }).select('_id').lean();
+      const matchingAssignmentIds = matchingAssignments.map(a => a._id);
+      
+      // Find matching subjects (fan nomi bo'yicha qidirish)
+      const matchingSubjects = await Subject.find({
+        name: { $regex: searchRegex }
+      }).select('_id').lean();
+      const subjectIds = matchingSubjects.map(s => s._id);
+      
+      // Subject bo'yicha topilgan lesson'larni olish
+      if (subjectIds.length > 0) {
+        const lessonsWithSubjects = await Lesson.find({
+          subjectId: { $in: subjectIds }
+        }).select('_id').lean();
+        const lessonIdsForSubjects = lessonsWithSubjects.map(l => l._id);
+        
+        if (lessonIdsForSubjects.length > 0) {
+          // Bu lesson'lardagi exam'larni topish
+          const examsForSubjects = await Exam.find({
+            lessonId: { $in: lessonIdsForSubjects }
+          }).select('_id').lean();
+          
+          // Bu lesson'lardagi assignment'larni topish
+          const assignmentsForSubjects = await Assignment.find({
+            lessonId: { $in: lessonIdsForSubjects }
+          }).select('_id').lean();
+          
+          // Topilgan exam va assignment ID'larni qo'shish
+          const examIdsFromSubjects = examsForSubjects.map(e => e._id);
+          const assignmentIdsFromSubjects = assignmentsForSubjects.map(a => a._id);
+          
+          // Duplicate'larni oldini olish
+          const existingExamIds = new Set(matchingExamIds.map(id => id.toString()));
+          const existingAssignmentIds = new Set(matchingAssignmentIds.map(id => id.toString()));
+          
+          examIdsFromSubjects.forEach(id => {
+            if (!existingExamIds.has(id.toString())) {
+              matchingExamIds.push(id);
+            }
+          });
+          
+          assignmentIdsFromSubjects.forEach(id => {
+            if (!existingAssignmentIds.has(id.toString())) {
+              matchingAssignmentIds.push(id);
+            }
+          });
+        }
+      }
+      
+      // Build search query
+      const searchConditions = [];
+      
+      if (studentObjectIds.length > 0 || studentStringIds.length > 0) {
+        const studentConditions = [];
+        if (studentObjectIds.length > 0) {
+          studentConditions.push({ studentId: { $in: studentObjectIds } });
+        }
+        if (studentStringIds.length > 0) {
+          studentConditions.push({ studentId: { $in: studentStringIds } });
+        }
+        if (studentConditions.length > 0) {
+          searchConditions.push({ $or: studentConditions });
+        }
+      }
+      
+      if (matchingExamIds.length > 0) {
+        searchConditions.push({ examId: { $in: matchingExamIds } });
+      }
+      
+      if (matchingAssignmentIds.length > 0) {
+        searchConditions.push({ assignmentId: { $in: matchingAssignmentIds } });
+      }
+      
+      // Combine with existing query
+      if (searchConditions.length > 0) {
+        if (query.$or) {
+          // If query already has $or, combine them
+          query.$and = [
+            { $or: query.$or },
+            { $or: searchConditions }
+          ];
+          delete query.$or;
+        } else {
+          query.$or = searchConditions;
+        }
+      } else {
+        // No matches found, return empty result
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          totalPages: 0,
+          currentPage: pageNum,
+          data: []
+        });
+      }
+    }
+
+    // Get results with optimized query
     const results = await Result.find(query)
-      .populate('examId')
-      .populate('assignmentId')
       .limit(limitNum)
       .skip((pageNum - 1) * limitNum)
       .sort({ createdAt: -1 })
       .lean();
 
-    // Manual populate students and related data
-    for (const result of results) {
-      // Populate student
-      if (result.studentId) {
-        const student = await Student.findOne({ id: result.studentId })
-          .select('id username name surname email')
-          .lean();
-        
-        result.student = student || { id: result.studentId };
-        delete result.studentId;
-      }
-
-      // Populate exam with lesson details
-      if (result.examId) {
-        const exam = await Exam.findById(result.examId)
-          .populate({
-            path: 'lessonId',
-            populate: [
-              { path: 'subjectId', select: 'name' },
-              { path: 'classId', select: 'name' }
-            ]
-          })
-          .lean();
-
-        if (exam && exam.lessonId && exam.lessonId.teacherId) {
-          const teacher = await Teacher.findOne({ id: exam.lessonId.teacherId })
-            .select('id name surname')
-            .lean();
-          
-          exam.lessonId.teacherId = teacher || { id: exam.lessonId.teacherId };
-        }
-
-        result.exam = exam;
-        delete result.examId;
-      }
-
-      // Populate assignment with lesson details
-      if (result.assignmentId) {
-        const assignment = await Assignment.findById(result.assignmentId)
-          .populate({
-            path: 'lessonId',
-            populate: [
-              { path: 'subjectId', select: 'name' },
-              { path: 'classId', select: 'name' }
-            ]
-          })
-          .lean();
-
-        if (assignment && assignment.lessonId && assignment.lessonId.teacherId) {
-          const teacher = await Teacher.findOne({ id: assignment.lessonId.teacherId })
-            .select('id name surname')
-            .lean();
-          
-          assignment.lessonId.teacherId = teacher || { id: assignment.lessonId.teacherId };
-        }
-
-        result.assignment = assignment;
-        delete result.assignmentId;
-      }
+    if (results.length === 0) {
+      const count = await Result.countDocuments(query);
+      return res.status(200).json({
+        success: true,
+        count,
+        totalPages: Math.ceil(count / limitNum),
+        currentPage: pageNum,
+        data: []
+      });
     }
 
+    // Collect all unique IDs for batch loading
+    const studentIds = [];
+    const examIds = [];
+    const assignmentIds = [];
+    const teacherIds = new Set();
+
+    results.forEach(result => {
+      if (result.studentId) {
+        studentIds.push(result.studentId);
+      }
+      if (result.examId) {
+        examIds.push(result.examId);
+      }
+      if (result.assignmentId) {
+        assignmentIds.push(result.assignmentId);
+      }
+    });
+
+    // Batch load all students (support both ObjectId and String id)
+    const studentObjectIds = studentIds.filter(id => mongoose.Types.ObjectId.isValid(id));
+    const studentStringIds = studentIds.filter(id => !mongoose.Types.ObjectId.isValid(id));
+    
+    const [studentsByObjectId, studentsByStringId] = await Promise.all([
+      studentObjectIds.length > 0 
+        ? Student.find({ _id: { $in: studentObjectIds } })
+            .select('_id id username name surname email')
+            .lean()
+        : Promise.resolve([]),
+      studentStringIds.length > 0
+        ? Student.find({ id: { $in: studentStringIds } })
+            .select('_id id username name surname email')
+            .lean()
+        : Promise.resolve([])
+    ]);
+
+    // Create student lookup maps
+    const studentMap = new Map();
+    studentsByObjectId.forEach(s => {
+      studentMap.set(s._id.toString(), s);
+      if (s.id) studentMap.set(s.id, s);
+    });
+    studentsByStringId.forEach(s => {
+      studentMap.set(s.id, s);
+      studentMap.set(s._id.toString(), s);
+    });
+
+    // Batch load all exams with populated lesson data
+    const exams = examIds.length > 0
+      ? await Exam.find({ _id: { $in: examIds } })
+          .populate({
+            path: 'lessonId',
+            populate: [
+              { path: 'subjectId', select: 'name' },
+              { path: 'classId', select: 'name' }
+            ]
+          })
+          .lean()
+      : [];
+
+    const examMap = new Map();
+    exams.forEach(exam => {
+      examMap.set(exam._id.toString(), exam);
+      if (exam.lessonId && exam.lessonId.teacherId) {
+        teacherIds.add(exam.lessonId.teacherId);
+      }
+    });
+
+    // Batch load all assignments with populated lesson data
+    const assignments = assignmentIds.length > 0
+      ? await Assignment.find({ _id: { $in: assignmentIds } })
+          .populate({
+            path: 'lessonId',
+            populate: [
+              { path: 'subjectId', select: 'name' },
+              { path: 'classId', select: 'name' }
+            ]
+          })
+          .lean()
+      : [];
+
+    const assignmentMap = new Map();
+    assignments.forEach(assignment => {
+      assignmentMap.set(assignment._id.toString(), assignment);
+      if (assignment.lessonId && assignment.lessonId.teacherId) {
+        teacherIds.add(assignment.lessonId.teacherId);
+      }
+    });
+
+    // Batch load all teachers
+    const teachers = teacherIds.size > 0
+      ? await Teacher.find({ id: { $in: Array.from(teacherIds) } })
+          .select('id name surname')
+          .lean()
+      : [];
+
+    const teacherMap = new Map();
+    teachers.forEach(teacher => {
+      teacherMap.set(teacher.id, teacher);
+    });
+
+    // Attach teachers to exams and assignments
+    exams.forEach(exam => {
+      if (exam.lessonId && exam.lessonId.teacherId) {
+        exam.lessonId.teacherId = teacherMap.get(exam.lessonId.teacherId) || { id: exam.lessonId.teacherId };
+      }
+    });
+
+    assignments.forEach(assignment => {
+      if (assignment.lessonId && assignment.lessonId.teacherId) {
+        assignment.lessonId.teacherId = teacherMap.get(assignment.lessonId.teacherId) || { id: assignment.lessonId.teacherId };
+      }
+    });
+
+    // Process results and attach related data
+    const processedResults = results.map(result => {
+      const processed = { ...result };
+
+      // Attach student
+      if (result.studentId) {
+        const studentIdStr = result.studentId.toString();
+        const student = studentMap.get(studentIdStr) || studentMap.get(result.studentId);
+        processed.student = student || { _id: result.studentId };
+        delete processed.studentId;
+      }
+
+      // Attach exam
+      if (result.examId) {
+        const exam = examMap.get(result.examId.toString());
+        processed.exam = exam || null;
+        delete processed.examId;
+      }
+
+      // Attach assignment
+      if (result.assignmentId) {
+        const assignment = assignmentMap.get(result.assignmentId.toString());
+        processed.assignment = assignment || null;
+        delete processed.assignmentId;
+      }
+
+      return processed;
+    });
+
+    // Get total count
     const count = await Result.countDocuments(query);
 
     res.status(200).json({
@@ -382,7 +623,7 @@ exports.getAllResults = async (req, res, next) => {
       count,
       totalPages: Math.ceil(count / limitNum),
       currentPage: pageNum,
-      data: results
+      data: processedResults
     });
   } catch (error) {
     console.error('Error in getAllResults:', error);
@@ -413,13 +654,25 @@ exports.getResult = async (req, res, next) => {
       });
     }
 
-    // Manual populate student
+    // Populate student - backward compatibility: support both ObjectId and String (id field)
     if (result.studentId) {
-      const student = await Student.findOne({ id: result.studentId })
-        .select('id username name surname email phone')
-        .lean();
+      let student = null;
       
-      result.student = student || { id: result.studentId };
+      // Try ObjectId first (new format)
+      if (mongoose.Types.ObjectId.isValid(result.studentId)) {
+        student = await Student.findById(result.studentId)
+          .select('id username name surname email phone')
+          .lean();
+      }
+      
+      // If not found, try String id field (old format)
+      if (!student) {
+        student = await Student.findOne({ id: result.studentId })
+          .select('id username name surname email phone')
+          .lean();
+      }
+      
+      result.student = student || { _id: result.studentId };
       delete result.studentId;
     }
 
@@ -523,7 +776,14 @@ exports.updateResult = async (req, res, next) => {
 
     // Validate studentId if provided
     if (studentId) {
-      const student = await Student.findOne({ id: studentId });
+      if (!mongoose.Types.ObjectId.isValid(studentId)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid student ID format'
+        });
+      }
+
+      const student = await Student.findById(studentId);
       if (!student) {
         return res.status(404).json({
           success: false,
@@ -615,13 +875,25 @@ exports.updateResult = async (req, res, next) => {
       });
     }
 
-    // Manual populate student
+    // Populate student - backward compatibility: support both ObjectId and String (id field)
     if (result.studentId) {
-      const student = await Student.findOne({ id: result.studentId })
-        .select('id username name surname email phone')
-        .lean();
+      let student = null;
       
-      result.student = student || { id: result.studentId };
+      // Try ObjectId first (new format)
+      if (mongoose.Types.ObjectId.isValid(result.studentId)) {
+        student = await Student.findById(result.studentId)
+          .select('id username name surname email phone')
+          .lean();
+      }
+      
+      // If not found, try String id field (old format)
+      if (!student) {
+        student = await Student.findOne({ id: result.studentId })
+          .select('id username name surname email phone')
+          .lean();
+      }
+      
+      result.student = student || { _id: result.studentId };
       delete result.studentId;
     }
 
