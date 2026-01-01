@@ -3,7 +3,7 @@
     <!-- Top -->
     <div class="flex items-center justify-between">
       <a-typography-title :level="4" class="!mb-0 hidden md:block">
-        All Assignments
+        All Events
       </a-typography-title>
       <div
         class="flex flex-col md:flex-row items-center gap-4 w-full md:w-auto"
@@ -11,7 +11,7 @@
         <BaseTableSearch 
           v-model="searchValue" 
           @search="handleSearch" 
-          @press-enter="handlePressEnter" 
+          @press-enter="handlePressEnter"
         />
         <a-space class="self-end">
           <a-button
@@ -33,7 +33,7 @@
             </template>
           </a-button>
           <a-button
-            @click="emit('addAssignment')"
+            @click="emit('addEvent')"
             shape="circle"
             type="text"
             class="bg-yellow-300 hover:bg-yellow-400"
@@ -50,8 +50,8 @@
     <div class="mt-4 overflow-x-auto">
       <BaseTable
         :columns="tableColumns"
-        :data-source="formattedAssignments"
-        :loading="assignmentsStore.isLoading"
+        :data-source="formattedEvents"
+        :loading="eventsStore.isLoading"
         :pagination="paginationConfig"
         :permissions="permissions"
         :scroll="{ x: 'max-content' }"
@@ -77,16 +77,16 @@ import IconSort from '@components/icon/IconSort.vue';
 // 3. Imports - Composables
 import { useSearch } from '@/composables/useSearch';
 // 4. Imports - Store
-import { useAssignmentsStore } from '@/store/assignment/assignments.pinia';
+import { useEventsStore } from '@/store/event/events.pinia';
+// 5. Imports - Libraries
 import dayjs from 'dayjs';
 
-
-// 5. Composables
+// 6. Composables
 const router = useRouter();
 const route = useRoute();
-const assignmentsStore = useAssignmentsStore();
+const eventsStore = useEventsStore();
 
-// 6. Props
+// 7. Props
 const props = defineProps({
   permissions: {
     type: Object,
@@ -102,10 +102,10 @@ const props = defineProps({
   }
 });
 
-// 7. Emits
-const emit = defineEmits(['addAssignment', 'editAssignment', 'deleteAssignment']);
+// 8. Emits
+const emit = defineEmits(['addEvent', 'editEvent', 'deleteEvent']);
 
-// 8. Composables (useSearch)
+// 9. Composables (useSearch)
 const { searchValue } = useSearch({
   debounceMs: 500,
   queryKey: 'search',
@@ -114,86 +114,83 @@ const { searchValue } = useSearch({
   }
 });
 
-// 9. Computed
+// 10. Computed
 // Table columns konfiguratsiyasi
 const tableColumns = computed(() => [
   {
-    title: '№',
-    key: 'number',
+    title: "№",
+    key: "number",
     width: 60,
-    align: 'center',
-    fixed: 'left'
+    align: "center",
+    fixed: "left",
   },
   {
-    title: 'Fan',
-    key: 'subject',
-    dataIndex: 'subject',
+    title: "Nomi",
+    key: "title",
+    dataIndex: "title",
     sorter: true,
     ellipsis: true,
   },
   {
-    title: 'Sinf',
-    key: 'class',
-    dataIndex: 'class',
-    sorter: true,
-    align: 'center',
+    title: "Guruh",
+    key: "class",
+    dataIndex: "class",
+    align: "center",
     ellipsis: true,
   },
   {
-    title: 'Mavzu',
-    key: 'title',
-    dataIndex: 'title',
-    sorter: true,
-    align: 'center',
+    title: "Sana",
+    key: "date",
+    dataIndex: "date",
+    align: "center",
     ellipsis: true,
   },
   {
-    title: "O'qituvchi",
-    key: 'teacher',
-    dataIndex: 'teacher',
-    align: 'center',
+    title: "Boshlanish vaqti",
+    key: "startTime",
+    dataIndex: "startTime",
+    align: "center",
     ellipsis: true,
   },
   {
-    title: 'Tugash Muddati',
-    key: 'dueDate',
-    dataIndex: 'dueDate',
-    sorter: true,
-    align: 'center',
+    title: "Tugash vaqti",
+    key: "endTime",
+    dataIndex: "endTime",
+    align: "center",
     ellipsis: true,
   },
+
   {
-    title: 'Amallar',
-    key: 'action',
-    width: 150,
-    fixed: 'right',
-    align: 'center',
+    title: "Amallar",
+    key: "action",
+    align: "center",
+    ellipsis: true,
   },
 ]);
 
-// Formatlangan topshiriqlar ro'yxati
-const formattedAssignments = computed(() => {
-  return assignmentsStore.assignments.map(assignment => ({
-    ...assignment,
-    key: assignment._id || assignment.id, // Table uchun unique key
-    teacher: assignment.lessonId?.teacherId?.name || '',
-    subject: assignment.lessonId?.subjectId?.name || '',
-    class: assignment.lessonId?.classId?.name || '',
-    dueDate: assignment.dueDate ? dayjs(assignment.dueDate).format('DD.MM.YYYY') : '',
+// Formatlangan eventlar ro'yxati
+const formattedEvents = computed(() => {
+  return eventsStore.events.map(event => ({
+    ...event,
+    key: event._id || event.id, // Table uchun unique key
+    class: event.classId?.name || '-',
+    date: event.startTime ? dayjs(event.startDate).format('DD.MM.YYYY') : '-',
+    startTime: event.startTime ? dayjs(event.startTime).format('HH:mm') : '-',
+    endTime: event.endTime ? dayjs(event.endTime).format('HH:mm') : '-',
   }));
 });
 
 // Pagination config
 const paginationConfig = computed(() => ({
-  current: assignmentsStore.pagination.currentPage,
-  pageSize: assignmentsStore.pagination.pageSize,
-  total: assignmentsStore.pagination.total,
+  current: eventsStore.pagination.currentPage,
+  pageSize: eventsStore.pagination.pageSize,
+  total: eventsStore.pagination.total,
   showSizeChanger: true,
-  showTotal: (total) => `Jami ${total} ta topshiriq`,
+  showTotal: (total) => `Jami ${total} ta event`,
   pageSizeOptions: ['10', '20', '50', '100'],
 }));
 
-// 10. Methods
+// 11. Methods
 /**
  * Qidiruvni amalga oshirish
  */
@@ -201,7 +198,7 @@ const performSearch = (searchQuery = '') => {
   const page = parseInt(route.query.page) || 1;
   const pageSize = parseInt(route.query.pageSize) || 10;
   
-  assignmentsStore.fetchAssignments({
+  eventsStore.fetchEvents({
     page,
     pageSize,
     search: searchQuery,
@@ -239,11 +236,14 @@ const loadFromURL = () => {
   // Local state'ni yangilash
   searchValue.value = search;
   
-  assignmentsStore.fetchAssignments({
-    page,
-    pageSize,
-    search,
-  });
+  // Agar search bo'sh bo'lsa, to'g'ridan-to'g'ri yuklash
+  if (!search) {
+    eventsStore.fetchEvents({
+      page,
+      pageSize,
+      search: '',
+    });
+  }
 };
 
 /**
@@ -258,7 +258,7 @@ const handleTableChange = ({ pag, filters, sorter }) => {
     });
     
     // Store'ga yuborish
-    // assignmentsStore.fetchAssignments({
+    // eventsStore.fetchEvents({
     //   page: pag.current,
     //   pageSize: pag.pageSize,
     //   search: searchValue.value,
@@ -280,19 +280,18 @@ const handleSearch = (value) => {};
 const handlePressEnter = () => {};
 
 const handleView = (record) => {
-  console.log('View assignment:', record);
-  // View logic
+  // View logikasi kelajakda qo'shiladi
 };
 
 const handleEdit = (record) => {
-  emit('editAssignment', record);
+  emit('editEvent', record);
 };
 
 const handleDelete = (record) => {
-  emit('deleteAssignment', record);
+  emit('deleteEvent', record);
 };
 
-// 11. Watchers
+// 12. Watchers
 /**
  * URL query params o'zgarganda (browser back/forward) ma'lumotlarni yangilash
  */
@@ -304,12 +303,12 @@ watch(() => route.query, (newQuery) => {
   
   // Agar store'dagi qiymatlar URL'dan farq qilsa, yangilash
   if (
-    assignmentsStore.pagination.currentPage !== page ||
-    assignmentsStore.pagination.pageSize !== pageSize ||
+    eventsStore.pagination.currentPage !== page ||
+    eventsStore.pagination.pageSize !== pageSize ||
     searchValue.value !== search
   ) {
     searchValue.value = search;
-    assignmentsStore.fetchAssignments({
+    eventsStore.fetchEvents({
       page,
       pageSize,
       search,
@@ -317,15 +316,15 @@ watch(() => route.query, (newQuery) => {
   }
 }, { deep: true });
 
-// 12. Lifecycle Hooks
-// Component mount bo'lganda topshiriqlarni yuklash
+// 13. Lifecycle Hooks
+// Component mount bo'lganda eventlarni yuklash
 onMounted(() => {
   // Agar URL'da query params bo'lsa, ularni ishlatish
   if (Object.keys(route.query).length > 0) {
     loadFromURL();
   } else {
     // Aks holda default qiymatlar bilan yuklash
-    assignmentsStore.fetchAssignments();
+    eventsStore.fetchEvents();
   }
 });
 </script>
