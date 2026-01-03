@@ -44,7 +44,17 @@ exports.validateAnnouncement = (req, res, next) => {
   }
 
   // Date validation
-  const announcementDate = new Date(date);
+  // Parse date - support ISO string, DD.MM.YYYY format, and standard Date formats
+  let announcementDate;
+  if (typeof date === 'string' && date.includes('.')) {
+    // Handle DD.MM.YYYY format
+    const [day, month, year] = date.split('.');
+    announcementDate = new Date(`${year}-${month}-${day}`);
+  } else {
+    // Handle ISO string or other standard formats
+    announcementDate = new Date(date);
+  }
+  
   if (isNaN(announcementDate.getTime())) {
     return validationError(res, 'Invalid date format');
   }
@@ -92,7 +102,17 @@ exports.validateAnnouncementUpdate = (req, res, next) => {
 
   // Date validation (if provided)
   if (date !== undefined) {
-    const announcementDate = new Date(date);
+    // Parse date - support ISO string, DD.MM.YYYY format, and standard Date formats
+    let announcementDate;
+    if (typeof date === 'string' && date.includes('.')) {
+      // Handle DD.MM.YYYY format
+      const [day, month, year] = date.split('.');
+      announcementDate = new Date(`${year}-${month}-${day}`);
+    } else {
+      // Handle ISO string or other standard formats
+      announcementDate = new Date(date);
+    }
+    
     if (isNaN(announcementDate.getTime())) {
       return validationError(res, 'Invalid date format');
     }
