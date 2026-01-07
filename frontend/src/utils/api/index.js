@@ -28,20 +28,27 @@ api.interceptors.request.use(
 // Response interceptor - Har bir javobdan keyin xatoliklarni boshqarish
 api.interceptors.response.use(
   (response) => {
-    // Muvaffaqiyatli javobni to'g'ridan-to'g'ri qaytarish
     return response;
   },
-  (error) => {
-    // 401 - Unauthorized (Token eskirgan yoki yo'q)
+  async (error) => {
     if (error.response?.status === 401) {
-      // Token va role'ni o'chirish
-      localStorage.removeItem('token');
-      localStorage.removeItem('role');
+      // Auth store'dan foydalanish (agar Pinia instance mavjud bo'lsa)
+      try {
+        // Store'ni import qilish - bu context'tan qat'i nazar ishlaydi
+        const authStore = useAuth();
+        await authStore.logout();
+      } catch (storeError) {
+        // Store mavjud bo'lmasa, oddiy tozalash
+        localStorage.removeItem('token');
+        localStorage.removeItem('role');
+      }
+      
       // Login sahifasiga yo'naltirish
-      window.location.href = '/';
+      if (window.location.pathname !== '/') {
+        window.location.href = '/';
+      }
     }
     
-    // Boshqa xatoliklarni qaytarish
     return Promise.reject(error);
   }
 );

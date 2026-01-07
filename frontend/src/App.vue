@@ -1,17 +1,17 @@
 <template>
   <RouterView />
 </template>
+
 <script setup>
 import { onMounted } from 'vue';
+import { useAuth } from '@/store/auth/auth.pinia';
 
-  onMounted(() => {
-    const role = localStorage.getItem('role');
-    const token = localStorage.getItem('token');
-    if(!role || !token){
-      localStorage.setItem('role', 'admin');
-      localStorage.setItem('token', 'eyJhbGciOiJIUzI1NiIsInR5cCI6IkpXVCJ9.eyJpZCI6ImFkbWluIiwicm9sZSI6ImFkbWluIiwiaWF0IjoxNzY2NzExNDczLCJleHAiOjE3NjkzMDM0NzN9._puNFfHWBpL3ivVnX20iLr6koP-74YVCEkVwVYTlrKQ');
-    }
-  })
+const authStore = useAuth();
+
+onMounted(() => {
+  // Ilova yuklanganda auth holatini tiklash
+  authStore.initAuth();
+});
 </script>
 
 <style scoped>
