@@ -128,7 +128,7 @@ onMounted(async () => {
   () => authStore.user,
   (newUser) => {
     if (newUser) {
-      console.log('User ma\'lumotlari yangilandi:', newUser);
+      // console.log('User ma\'lumotlari yangilandi:', newUser);
     }
   },
   { deep: true }

@@ -194,8 +194,6 @@ const props = defineProps({
     }
 });
 
-console.log(props.dataSource);
-
 const emits = defineEmits(['changePage', 'viewRow', 'editRow', 'deleteRow']);
 
 // Scroll konfiguratsiyasi - fixed columnlar ishlashi uchun kerak
