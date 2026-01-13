@@ -2,6 +2,34 @@ const mongoose = require('mongoose');
 const Class = require('../models/Class');
 const Teacher = require('../models/Teacher');
 const Grade = require('../models/Grade');
+const Lesson = require('../models/Lesson');
+
+// ✅ Helper function to get teacher's related class IDs (as ObjectIds)
+const getTeacherRelatedClassIds = async (teacherId) => {
+  // 1. Teacher'ning supervisor bo'lgan class'larni topish
+  const supervisedClasses = await Class.find({ supervisorId: teacherId })
+    .select('_id')
+    .lean();
+  const supervisedClassIds = supervisedClasses.map(cls => cls._id);
+
+  // 2. Teacher'ning dars berayotgan class'larni topish (Lesson orqali)
+  const teacherLessons = await Lesson.find({ teacherId: teacherId })
+    .select('classId')
+    .lean();
+  const lessonClassIds = teacherLessons.map(lesson => lesson.classId);
+
+  // 3. Barcha tegishli class ID'larni birlashtirish (unique qilish)
+  // ObjectId'larni string'ga convert qilib, keyin yana ObjectId'ga convert qilamiz
+  const uniqueClassIdStrings = [...new Set([
+    ...supervisedClassIds.map(id => id.toString()),
+    ...lessonClassIds.map(id => id.toString())
+  ])];
+  
+  // ObjectId formatiga qaytarish
+  return uniqueClassIdStrings
+    .filter(id => mongoose.Types.ObjectId.isValid(id))
+    .map(id => new mongoose.Types.ObjectId(id));
+};
 
 // Get All Classes
 exports.getAllClasses = async (req, res, next) => {
@@ -9,6 +37,35 @@ exports.getAllClasses = async (req, res, next) => {
     const { page = 1, limit = 10, search, gradeId, supervisorId } = req.query;
     
     const query = {};
+    
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli class'larni ko'rsatish
+    if (req.user.role === 'teacher') {
+      const teacherId = req.user.id || req.user._id?.toString();
+      
+      if (!teacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Teacher'ga tegishli class ID'larni olish
+      const relatedClassIds = await getTeacherRelatedClassIds(teacherId);
+
+      // Agar teacher'ga tegishli class bo'lmasa, bo'sh array qaytarish
+      if (relatedClassIds.length === 0) {
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          totalPages: 0,
+          currentPage: 1,
+          data: []
+        });
+      }
+
+      // Faqat tegishli class'larni filter qilish
+      query._id = { $in: relatedClassIds };
+    }
     
     // Sanitize search
     if (search && typeof search === 'string' && search.trim() !== '') {
@@ -28,8 +85,18 @@ exports.getAllClasses = async (req, res, next) => {
       }
     }
     
-    // ✅ supervisorId - String sifatida qo'shish
+    // ✅ supervisorId - String sifatida qo'shish (admin uchun)
     if (supervisorId && typeof supervisorId === 'string' && supervisorId.trim() !== '') {
+      // Teacher bo'lsa, faqat o'z supervisorId'sini filter qilish mumkin
+      if (req.user.role === 'teacher') {
+        const teacherId = req.user.id || req.user._id?.toString();
+        if (supervisorId !== teacherId) {
+          return res.status(403).json({
+            success: false,
+            error: 'You can only filter by your own supervisor ID'
+          });
+        }
+      }
       query.supervisorId = supervisorId.trim();
     }
 
@@ -101,6 +168,33 @@ exports.getClass = async (req, res, next) => {
         success: false,
         error: 'Class not found'
       });
+    }
+
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli class'larni ko'rish mumkin
+    if (req.user.role === 'teacher') {
+      const teacherId = req.user.id || req.user._id?.toString();
+      
+      if (!teacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Teacher'ga tegishli class ID'larni olish
+      const relatedClassIds = await getTeacherRelatedClassIds(teacherId);
+
+      // ObjectId'larni string'ga convert qilib taqqoslash
+      const relatedClassIdStrings = relatedClassIds.map(id => id.toString());
+      const classIdString = classData._id.toString();
+
+      // Agar teacher'ga tegishli bo'lmasa, access denied
+      if (!relatedClassIdStrings.includes(classIdString)) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have access to this class'
+        });
+      }
     }
 
     // ✅ Manual populate
