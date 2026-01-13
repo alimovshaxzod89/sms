@@ -333,8 +333,63 @@ exports.getAllResults = async (req, res, next) => {
       query.examId = null; // Only results for assignments
     }
 
-    // Filter by classId or teacherId (requires joining through exam/assignment -> lesson)
-    if (classId || teacherId) {
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli lesson'lardagi result'larni ko'rsatish
+    if (userRole === 'teacher') {
+      const loggedInTeacherId = req.user.id || req.user._id?.toString();
+      
+      if (!loggedInTeacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Teacher'ning lesson'larini topish
+      const teacherLessons = await Lesson.find({ teacherId: loggedInTeacherId })
+        .select('_id')
+        .lean();
+      
+      if (teacherLessons.length === 0) {
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          totalPages: 0,
+          currentPage: parseInt(page),
+          data: []
+        });
+      }
+
+      const lessonIds = teacherLessons.map(l => l._id);
+
+      // Bu lesson'lardagi exam va assignment'larni topish
+      const exams = await Exam.find({ lessonId: { $in: lessonIds } }).select('_id').lean();
+      const assignments = await Assignment.find({ lessonId: { $in: lessonIds } }).select('_id').lean();
+      
+      const examIds = exams.map(e => e._id);
+      const assignmentIds = assignments.map(a => a._id);
+
+      // Result'larni filter qilish
+      query.$or = [];
+      if (examIds.length > 0) {
+        query.$or.push({ examId: { $in: examIds } });
+      }
+      if (assignmentIds.length > 0) {
+        query.$or.push({ assignmentId: { $in: assignmentIds } });
+      }
+
+      if (query.$or.length === 0) {
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          totalPages: 0,
+          currentPage: parseInt(page),
+          data: []
+        });
+      }
+    }
+    
+    // Filter by classId or teacherId (faqat admin uchun query parametrdan)
+    if ((classId || teacherId) && userRole === 'admin') {
       let lessonQuery = {};
       
       if (classId) {
@@ -784,6 +839,50 @@ exports.getResult = async (req, res, next) => {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this result'
+        });
+      }
+    }
+    
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli lesson'dagi result'larni ko'rish mumkin
+    if (userRole === 'teacher') {
+      const loggedInTeacherId = req.user.id || req.user._id?.toString();
+      
+      if (!loggedInTeacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Result'ning exam yoki assignment'ini tekshirish
+      let lessonId = null;
+      
+      if (result.examId) {
+        const exam = await Exam.findById(result.examId).select('lessonId').lean();
+        if (exam && exam.lessonId) {
+          lessonId = exam.lessonId;
+        }
+      } else if (result.assignmentId) {
+        const assignment = await Assignment.findById(result.assignmentId).select('lessonId').lean();
+        if (assignment && assignment.lessonId) {
+          lessonId = assignment.lessonId;
+        }
+      }
+
+      if (!lessonId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Not authorized to access this result'
+        });
+      }
+
+      // Lesson'ning teacherId'sini tekshirish
+      const lesson = await Lesson.findById(lessonId).select('teacherId').lean();
+      
+      if (!lesson || lesson.teacherId !== loggedInTeacherId) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have access to this result'
         });
       }
     }
