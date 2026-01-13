@@ -178,6 +178,24 @@ exports.getAllLessons = async (req, res, next) => {
     
     const query = {};
     
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli lesson'larni ko'rsatish
+    if (req.user.role === 'teacher') {
+      const loggedInTeacherId = req.user.id || req.user._id?.toString();
+      
+      if (!loggedInTeacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Faqat o'sha teacher'ning lesson'larini filter qilish
+      query.teacherId = loggedInTeacherId;
+    } else if (teacherId) {
+      // Admin uchun teacherId filter (query parameter orqali)
+      query.teacherId = teacherId;
+    }
+    
     // Sanitize search parameter
     if (search && typeof search === 'string') {
       const sanitizedSearch = search.replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -193,11 +211,6 @@ exports.getAllLessons = async (req, res, next) => {
         });
       }
       query.classId = classId;
-    }
-    
-    // ✅ teacherId String type
-    if (teacherId) {
-      query.teacherId = teacherId;
     }
 
     const pageNum = Math.max(1, parseInt(page) || 1);
@@ -266,6 +279,26 @@ exports.getLesson = async (req, res, next) => {
         success: false,
         error: 'Lesson not found'
       });
+    }
+
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli lesson'larni ko'rish mumkin
+    if (req.user.role === 'teacher') {
+      const loggedInTeacherId = req.user.id || req.user._id?.toString();
+      
+      if (!loggedInTeacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Agar lesson teacher'ga tegishli bo'lmasa, access denied
+      if (lesson.teacherId !== loggedInTeacherId) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have access to this lesson'
+        });
+      }
     }
 
     // ✅ Manual populate teacher

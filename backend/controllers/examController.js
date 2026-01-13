@@ -206,8 +206,23 @@ exports.getAllExams = async (req, res, next) => {
       lessonQuery.classId = { $in: studentClassIds };
     }
     
-    // Validate ObjectIds for classId (admin/teacher uchun query parametrdan)
-    if (classId && (userRole === 'admin' || userRole === 'teacher')) {
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli lesson'lardagi exam'larni ko'rsatish
+    if (userRole === 'teacher') {
+      const loggedInTeacherId = req.user.id || req.user._id?.toString();
+      
+      if (!loggedInTeacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Faqat o'sha teacher'ning lesson'larini filter qilish
+      lessonQuery.teacherId = loggedInTeacherId;
+    }
+    
+    // Validate ObjectIds for classId (admin uchun query parametrdan)
+    if (classId && userRole === 'admin') {
       if (!mongoose.Types.ObjectId.isValid(classId)) {
         return res.status(400).json({
           success: false,
@@ -217,8 +232,8 @@ exports.getAllExams = async (req, res, next) => {
       lessonQuery.classId = classId;
     }
     
-    // teacherId is String type, not ObjectId (admin/teacher uchun)
-    if (teacherId && (userRole === 'admin' || userRole === 'teacher')) {
+    // teacherId is String type, not ObjectId (faqat admin uchun query parametrdan)
+    if (teacherId && userRole === 'admin') {
       lessonQuery.teacherId = teacherId;
     }
     
@@ -400,6 +415,39 @@ exports.getExam = async (req, res, next) => {
         return res.status(403).json({
           success: false,
           error: 'Not authorized to access this exam'
+        });
+      }
+    }
+    
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli lesson'dagi exam'larni ko'rish mumkin
+    if (userRole === 'teacher') {
+      const loggedInTeacherId = req.user.id || req.user._id?.toString();
+      
+      if (!loggedInTeacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Lesson'ning teacherId'sini olish
+      if (!exam.lessonId || !exam.lessonId.teacherId) {
+        return res.status(403).json({
+          success: false,
+          error: 'Not authorized to access this exam'
+        });
+      }
+
+      // teacherId ni stringga aylantirish (agar object bo'lsa)
+      const lessonTeacherId = typeof exam.lessonId.teacherId === 'string' 
+        ? exam.lessonId.teacherId 
+        : (exam.lessonId.teacherId?.id || exam.lessonId.teacherId?._id?.toString() || exam.lessonId.teacherId);
+
+      // Agar lesson teacher'ga tegishli bo'lmasa, access denied
+      if (lessonTeacherId !== loggedInTeacherId) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have access to this exam'
         });
       }
     }
