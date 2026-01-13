@@ -14,22 +14,31 @@ const checkStudentOwnership = (req, studentId) => {
   return true;
 };
 
-// ✅ Helper function to get teacher's related class IDs
+// ✅ Helper function to get teacher's related class IDs (as ObjectIds)
 const getTeacherRelatedClassIds = async (teacherId) => {
   // 1. Teacher'ning supervisor bo'lgan class'larni topish
   const supervisedClasses = await Class.find({ supervisorId: teacherId })
     .select('_id')
     .lean();
-  const supervisedClassIds = supervisedClasses.map(cls => cls._id.toString());
+  const supervisedClassIds = supervisedClasses.map(cls => cls._id);
 
   // 2. Teacher'ning dars berayotgan class'larni topish (Lesson orqali)
   const teacherLessons = await Lesson.find({ teacherId: teacherId })
     .select('classId')
     .lean();
-  const lessonClassIds = teacherLessons.map(lesson => lesson.classId.toString());
+  const lessonClassIds = teacherLessons.map(lesson => lesson.classId);
 
   // 3. Barcha tegishli class ID'larni birlashtirish (unique qilish)
-  return [...new Set([...supervisedClassIds, ...lessonClassIds])];
+  // ObjectId'larni string'ga convert qilib, keyin yana ObjectId'ga convert qilamiz
+  const uniqueClassIdStrings = [...new Set([
+    ...supervisedClassIds.map(id => id.toString()),
+    ...lessonClassIds.map(id => id.toString())
+  ])];
+  
+  // ObjectId formatiga qaytarish
+  return uniqueClassIdStrings
+    .filter(id => mongoose.Types.ObjectId.isValid(id))
+    .map(id => new mongoose.Types.ObjectId(id));
 };
 
 // Create Student
@@ -191,7 +200,9 @@ exports.getAllStudents = async (req, res, next) => {
         const teacherId = req.user.id || req.user._id?.toString();
         const relatedClassIds = await getTeacherRelatedClassIds(teacherId);
         
-        if (!relatedClassIds.includes(classId)) {
+        // ObjectId'larni string'ga convert qilib taqqoslash
+        const relatedClassIdStrings = relatedClassIds.map(id => id.toString());
+        if (!relatedClassIdStrings.includes(classId)) {
           return res.status(403).json({
             success: false,
             error: 'You do not have access to this class'
@@ -293,8 +304,11 @@ exports.getStudent = async (req, res, next) => {
       // Teacher'ga tegishli class ID'larni olish
       const relatedClassIds = await getTeacherRelatedClassIds(teacherId);
 
+      // ObjectId'larni string'ga convert qilib taqqoslash
+      const relatedClassIdStrings = relatedClassIds.map(id => id.toString());
+      
       // Agar teacher'ga tegishli bo'lmasa, access denied
-      if (!relatedClassIds.includes(studentClassId)) {
+      if (!relatedClassIdStrings.includes(studentClassId)) {
         return res.status(403).json({
           success: false,
           error: 'You do not have access to this student'

@@ -1,5 +1,7 @@
 const Parent = require('../models/Parent');
 const Student = require('../models/Student');
+const Class = require('../models/Class');
+const Lesson = require('../models/Lesson');
 const bcrypt = require('bcryptjs');
 const mongoose = require('mongoose');
 
@@ -9,6 +11,59 @@ const checkParentOwnership = (req, parentId) => {
     return false;
   }
   return true;
+};
+
+// ✅ Helper function to get teacher's related class IDs (as ObjectIds)
+const getTeacherRelatedClassIds = async (teacherId) => {
+  // 1. Teacher'ning supervisor bo'lgan class'larni topish
+  const supervisedClasses = await Class.find({ supervisorId: teacherId })
+    .select('_id')
+    .lean();
+  const supervisedClassIds = supervisedClasses.map(cls => cls._id);
+
+  // 2. Teacher'ning dars berayotgan class'larni topish (Lesson orqali)
+  const teacherLessons = await Lesson.find({ teacherId: teacherId })
+    .select('classId')
+    .lean();
+  const lessonClassIds = teacherLessons.map(lesson => lesson.classId);
+
+  // 3. Barcha tegishli class ID'larni birlashtirish (unique qilish)
+  // ObjectId'larni string'ga convert qilib, keyin yana ObjectId'ga convert qilamiz
+  const uniqueClassIdStrings = [...new Set([
+    ...supervisedClassIds.map(id => id.toString()),
+    ...lessonClassIds.map(id => id.toString())
+  ])];
+  
+  // ObjectId formatiga qaytarish
+  return uniqueClassIdStrings
+    .filter(id => mongoose.Types.ObjectId.isValid(id))
+    .map(id => new mongoose.Types.ObjectId(id));
+};
+
+// ✅ Helper function to get parent IDs related to teacher
+const getTeacherRelatedParentIds = async (teacherId) => {
+  // 1. Teacher'ga tegishli class ID'larni olish (ObjectId formatida)
+  const relatedClassIds = await getTeacherRelatedClassIds(teacherId);
+
+  // 2. Agar class bo'lmasa, bo'sh array qaytarish
+  if (relatedClassIds.length === 0) {
+    return [];
+  }
+
+  // 3. O'sha class'lardagi studentlarni topish
+  const students = await Student.find({ 
+    classId: { $in: relatedClassIds } 
+  })
+    .select('parentId')
+    .lean();
+
+  // 4. Unique parent ID'larni olish (parentId String type)
+  const parentIds = students
+    .map(student => student.parentId)
+    .filter(parentId => parentId) // null yoki undefined'larni olib tashlash
+    .filter((value, index, self) => self.indexOf(value) === index); // unique qilish
+
+  return parentIds;
 };
 
 // Create Parent
@@ -99,6 +154,35 @@ exports.getAllParents = async (req, res, next) => {
     
     const query = {};
     
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli parentlarni ko'rsatish
+    if (req.user.role === 'teacher') {
+      const teacherId = req.user.id || req.user._id?.toString();
+      
+      if (!teacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Teacher'ga tegishli parent ID'larni olish
+      const relatedParentIds = await getTeacherRelatedParentIds(teacherId);
+
+      // Agar teacher'ga tegishli parent bo'lmasa, bo'sh array qaytarish
+      if (relatedParentIds.length === 0) {
+        return res.status(200).json({
+          success: true,
+          count: 0,
+          totalPages: 0,
+          currentPage: 1,
+          data: []
+        });
+      }
+
+      // Faqat tegishli parentlarni filter qilish
+      query.id = { $in: relatedParentIds };
+    }
+    
     // ✅ Search by name, surname, username, email, or phone
     if (search && typeof search === 'string' && search.trim()) {
       const sanitizedSearch = search.trim().replace(/[.*+?^${}()|[\]\\]/g, '\\$&');
@@ -182,6 +266,29 @@ exports.getParent = async (req, res, next) => {
         success: false,
         error: 'Not authorized to access this parent profile'
       });
+    }
+
+    // ✅ Teacher role'da bo'lsa, faqat o'ziga tegishli parentlarni ko'rish mumkin
+    if (req.user.role === 'teacher') {
+      const teacherId = req.user.id || req.user._id?.toString();
+      
+      if (!teacherId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Teacher ID not found'
+        });
+      }
+
+      // Teacher'ga tegishli parent ID'larni olish
+      const relatedParentIds = await getTeacherRelatedParentIds(teacherId);
+
+      // Agar teacher'ga tegishli bo'lmasa, access denied
+      if (!relatedParentIds.includes(parent.id)) {
+        return res.status(403).json({
+          success: false,
+          error: 'You do not have access to this parent'
+        });
+      }
     }
 
     // ✅ Get parent's students
