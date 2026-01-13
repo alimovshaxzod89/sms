@@ -438,12 +438,21 @@ exports.updateClass = async (req, res, next) => {
       }
     }
 
-    // ✅ students array tekshirish
+    // ✅ students array tekshirish va classId yangilash
+    const Student = require('../models/Student');
+    let oldStudents = [];
+    let newStudents = [];
+    
     if (updateData.students !== undefined) {
+      // Eski class'ning students ro'yxatini olish
+      const existingClass = await Class.findById(req.params.id).lean();
+      if (existingClass && existingClass.students) {
+        oldStudents = existingClass.students.map(id => id.toString());
+      }
+      
       // Agar students array bo'lsa va bo'sh bo'lmasa
       if (Array.isArray(updateData.students) && updateData.students.length > 0) {
         // Har bir student ID ni tekshirish
-        const Student = require('../models/Student');
         const validStudents = [];
         
         for (const studentId of updateData.students) {
@@ -456,11 +465,15 @@ exports.updateClass = async (req, res, next) => {
         }
         
         updateData.students = validStudents;
+        newStudents = validStudents.map(id => id.toString());
       } else if (!Array.isArray(updateData.students)) {
         return res.status(400).json({
           success: false,
           error: 'Students must be an array'
         });
+      } else {
+        // Agar bo'sh array bo'lsa
+        newStudents = [];
       }
     }
 
@@ -485,6 +498,30 @@ exports.updateClass = async (req, res, next) => {
         runValidators: true 
       }
     ).lean();
+
+    // ✅ Studentlarning classId propertysini yangilash
+    if (updateData.students !== undefined) {
+      // Yangi qo'shilgan studentlarning classId'sini yangilash
+      const addedStudents = newStudents.filter(id => !oldStudents.includes(id));
+      if (addedStudents.length > 0) {
+        // ObjectId formatiga o'tkazish
+        const addedStudentIds = addedStudents
+          .filter(id => mongoose.Types.ObjectId.isValid(id))
+          .map(id => new mongoose.Types.ObjectId(id));
+        
+        if (addedStudentIds.length > 0) {
+          await Student.updateMany(
+            { _id: { $in: addedStudentIds } },
+            { $set: { classId: new mongoose.Types.ObjectId(req.params.id) } }
+          );
+        }
+      }
+      
+      // Eslatma: Student modelida classId required, shuning uchun 
+      // student class'dan olib tashlanganda, uni boshqa class'ga o'tkazish yoki
+      // classId'ni yangi class ID'ga o'zgartirish kerak
+      // Hozircha faqat yangi qo'shilgan studentlarning classId'sini yangilaymiz
+    }
 
     if (!classData) {
       return res.status(404).json({

@@ -2,6 +2,7 @@ const mongoose = require('mongoose');
 const Event = require('../models/Event');
 const Class = require('../models/Class');
 const Lesson = require('../models/Lesson');
+const Student = require('../models/Student');
 
 // ✅ Helper function to get teacher's related class IDs (as ObjectIds)
 const getTeacherRelatedClassIds = async (teacherId) => {
@@ -157,6 +158,55 @@ exports.getAllEvents = async (req, res, next) => {
         { classId: null }, // classId bo'lmagan event'lar - barcha teacherlar uchun
         { classId: { $in: relatedClassIds } } // Teacher'ga tegishli class'lardagi event'lar
       ];
+    } else if (req.user.role === 'student') {
+      // ✅ Student role'da bo'lsa, faqat o'z classId'siga tegishli eventlar yoki classId bo'lmagan eventlar
+      const studentId = req.user.id || req.user._id?.toString();
+      
+      if (!studentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Student ID not found'
+        });
+      }
+
+      // Student'ning classId'sini olish
+      let studentClassId = req.user.classId;
+      
+      // Agar req.user'da classId bo'lmasa, Student'ni qaytadan yuklash
+      if (!studentClassId) {
+        const student = await Student.findById(studentId)
+          .select('classId')
+          .lean();
+        
+        if (!student || !student.classId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Student class not found'
+          });
+        }
+        
+        studentClassId = student.classId;
+      }
+
+      // classId ObjectId yoki string formatida bo'lishi mumkin
+      const studentClassIdString = studentClassId._id 
+        ? studentClassId._id.toString() 
+        : studentClassId.toString();
+
+      if (!mongoose.Types.ObjectId.isValid(studentClassIdString)) {
+        return res.status(400).json({
+          success: false,
+          error: 'Invalid student class ID format'
+        });
+      }
+
+      // Event filter:
+      // 1. classId null bo'lgan event'lar (barcha studentlar uchun)
+      // 2. classId student'ning classId'siga teng bo'lgan event'lar
+      query.$or = [
+        { classId: null }, // classId bo'lmagan event'lar - barcha studentlar uchun
+        { classId: new mongoose.Types.ObjectId(studentClassIdString) } // Student'ning classId'siga tegishli event'lar
+      ];
     } else {
       // Admin va boshqa rollar uchun - classId filter (query parametrdan)
       if (classId) {
@@ -296,6 +346,54 @@ exports.getEvent = async (req, res, next) => {
         }
       }
       // Agar event'da classId bo'lmasa (null), barcha teacherlar ko'ra oladi - hech narsa qilmaymiz
+    } else if (req.user.role === 'student') {
+      // ✅ Student role'da bo'lsa, event'ga access tekshirish
+      const studentId = req.user.id || req.user._id?.toString();
+      
+      if (!studentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Student ID not found'
+        });
+      }
+
+      // Student'ning classId'sini olish
+      let studentClassId = req.user.classId;
+      
+      // Agar req.user'da classId bo'lmasa, Student'ni qaytadan yuklash
+      if (!studentClassId) {
+        const student = await Student.findById(studentId)
+          .select('classId')
+          .lean();
+        
+        if (!student || !student.classId) {
+          return res.status(400).json({
+            success: false,
+            error: 'Student class not found'
+          });
+        }
+        
+        studentClassId = student.classId;
+      }
+
+      // classId ObjectId yoki string formatida bo'lishi mumkin
+      const studentClassIdString = studentClassId._id 
+        ? studentClassId._id.toString() 
+        : studentClassId.toString();
+
+      // Agar event'da classId bo'lsa, student'ning classId'siga teng ekanligini tekshirish
+      if (event.classId) {
+        const eventClassId = event.classId._id?.toString() || event.classId.toString();
+        
+        // Agar event'ning classId'si student'ning classId'siga teng bo'lmasa, access denied
+        if (eventClassId !== studentClassIdString) {
+          return res.status(403).json({
+            success: false,
+            error: 'You do not have access to this event'
+          });
+        }
+      }
+      // Agar event'da classId bo'lmasa (null), barcha studentlar ko'ra oladi - hech narsa qilmaymiz
     }
 
     res.status(200).json({
