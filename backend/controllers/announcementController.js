@@ -3,6 +3,7 @@ const Announcement = require('../models/Announcement');
 const Class = require('../models/Class');
 const Lesson = require('../models/Lesson');
 const Student = require('../models/Student');
+const Parent = require('../models/Parent');
 
 // ✅ Helper function to get teacher's related class IDs (as ObjectIds)
 const getTeacherRelatedClassIds = async (teacherId) => {
@@ -27,6 +28,42 @@ const getTeacherRelatedClassIds = async (teacherId) => {
   
   // ObjectId formatiga qaytarish
   return uniqueClassIdStrings
+    .filter(id => mongoose.Types.ObjectId.isValid(id))
+    .map(id => new mongoose.Types.ObjectId(id));
+};
+
+// ✅ Helper function to get parent's related class IDs (as ObjectIds)
+const getParentRelatedClassIds = async (parentId) => {
+  // Parent'ning farzandlarini topish
+  let parent;
+  
+  // Parent'ni topish (_id yoki id field orqali)
+  if (mongoose.Types.ObjectId.isValid(parentId)) {
+    parent = await Parent.findById(parentId).select('id').lean();
+  }
+  
+  if (!parent) {
+    parent = await Parent.findOne({ id: parentId }).select('id').lean();
+  }
+  
+  if (!parent) {
+    return [];
+  }
+  
+  // Parent'ning farzandlarini topish (parentId orqali)
+  const students = await Student.find({ parentId: parent.id || parentId })
+    .select('classId')
+    .lean();
+  
+  // Farzandlarining classId'larini olish (unique qilish)
+  const classIdStrings = [...new Set(
+    students
+      .filter(student => student.classId)
+      .map(student => student.classId.toString())
+  )];
+  
+  // ObjectId formatiga qaytarish
+  return classIdStrings
     .filter(id => mongoose.Types.ObjectId.isValid(id))
     .map(id => new mongoose.Types.ObjectId(id));
 };
@@ -156,6 +193,27 @@ exports.getAllAnnouncements = async (req, res, next) => {
       query.$or = [
         { classId: null }, // classId bo'lmagan announcement'lar - barcha teacherlar uchun
         { classId: { $in: relatedClassIds } } // Teacher'ga tegishli class'lardagi announcement'lar
+      ];
+    } else if (req.user.role === 'parent') {
+      // ✅ Parent role'da bo'lsa, faqat o'z farzandlarining classId'lariga tegishli announcementlar yoki classId bo'lmagan announcementlar
+      const parentId = req.user.id || req.user._id?.toString();
+      
+      if (!parentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Parent ID not found'
+        });
+      }
+
+      // Parent'ga tegishli class ID'larni olish (farzandlarining classId'lari)
+      const relatedClassIds = await getParentRelatedClassIds(parentId);
+
+      // Announcement filter:
+      // 1. classId null bo'lgan announcement'lar (barcha parentlar uchun)
+      // 2. classId parent'ning farzandlarining classId'lariga teng bo'lgan announcement'lar
+      query.$or = [
+        { classId: null }, // classId bo'lmagan announcement'lar - barcha parentlar uchun
+        { classId: { $in: relatedClassIds } } // Parent'ning farzandlarining classId'lariga tegishli announcement'lar
       ];
     } else if (req.user.role === 'student') {
       // ✅ Student role'da bo'lsa, faqat o'z classId'siga tegishli announcementlar yoki classId bo'lmagan announcementlar
@@ -347,6 +405,34 @@ exports.getAnnouncement = async (req, res, next) => {
         }
       }
       // Agar announcement'da classId bo'lmasa (null), barcha teacherlar ko'ra oladi - hech narsa qilmaymiz
+    } else if (req.user.role === 'parent') {
+      // ✅ Parent role'da bo'lsa, announcement'ga access tekshirish
+      const parentId = req.user.id || req.user._id?.toString();
+      
+      if (!parentId) {
+        return res.status(400).json({
+          success: false,
+          error: 'Parent ID not found'
+        });
+      }
+
+      // Agar announcement'da classId bo'lsa, parent'ning farzandlarining classId'lariga tegishli ekanligini tekshirish
+      if (announcement.classId) {
+        const announcementClassId = announcement.classId._id?.toString() || announcement.classId.toString();
+        
+        // Parent'ga tegishli class ID'larni olish (farzandlarining classId'lari)
+        const relatedClassIds = await getParentRelatedClassIds(parentId);
+        const relatedClassIdStrings = relatedClassIds.map(id => id.toString());
+
+        // Agar announcement'ning classId'si parent'ning farzandlarining classId'lariga tegishli bo'lmasa, access denied
+        if (!relatedClassIdStrings.includes(announcementClassId)) {
+          return res.status(403).json({
+            success: false,
+            error: 'You do not have access to this announcement'
+          });
+        }
+      }
+      // Agar announcement'da classId bo'lmasa (null), barcha parentlar ko'ra oladi - hech narsa qilmaymiz
     } else if (req.user.role === 'student') {
       // ✅ Student role'da bo'lsa, announcement'ga access tekshirish
       const studentId = req.user.id || req.user._id?.toString();
