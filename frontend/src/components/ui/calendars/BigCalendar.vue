@@ -1,128 +1,82 @@
-<script setup>
-import { ref, computed } from 'vue'
-import { VueCal } from 'vue-cal'
-import 'vue-cal/style.css'
-import dayjs from 'dayjs'
-
-const props = defineProps({
-    classGroup: {
-        type: String,
-        default: '4A'
-    }
-})
-
-const currentView = ref('week')
-
-// Joriy haftaning dushanba kunini topish
-const getMonday = (date) => {
-    const d = new Date(date)
-    const day = d.getDay()
-    const diff = d.getDate() - day + (day === 0 ? -6 : 1) // adjust when day is Sunday
-    return new Date(d.setDate(diff))
-}
-
-const monday = getMonday(new Date())
-
-// Hafta kunlari uchun sanalarni hisoblash
-const getWeekDate = (dayOffset) => {
-    const date = new Date(monday)
-    date.setDate(monday.getDate() + dayOffset)
-    return dayjs(date).format('YYYY-MM-DD')
-}
-
-// Hafta oralig'ini ko'rsatish uchun
-const dateRangeText = computed(() => {
-    const start = dayjs(monday).format('MMMM D')
-    const end = dayjs(monday).add(4, 'day').format('D')
-    return `${start} - ${end}`
-})
-
-// Dars jadvali ma'lumotlari - dinamik sanalar bilan
-const scheduleData = computed(() => [
-    // Dushanba (0)
-    { start: `${getWeekDate(0)} 08:00`, end: `${getWeekDate(0)} 08:45`, title: 'Matematika', class: 'subject-math' },
-    { start: `${getWeekDate(0)} 09:00`, end: `${getWeekDate(0)} 09:45`, title: 'Ingliz tili', class: 'subject-english' },
-    { start: `${getWeekDate(0)} 10:00`, end: `${getWeekDate(0)} 10:45`, title: 'Biologiya', class: 'subject-biology' },
-    { start: `${getWeekDate(0)} 11:00`, end: `${getWeekDate(0)} 11:45`, title: 'Fizika', class: 'subject-physics' },
-    { start: `${getWeekDate(0)} 13:00`, end: `${getWeekDate(0)} 13:45`, title: 'Kimyo', class: 'subject-chemistry' },
-    { start: `${getWeekDate(0)} 14:00`, end: `${getWeekDate(0)} 14:45`, title: 'Tarix', class: 'subject-history' },
-    
-    // Seshanba (1)
-    { start: `${getWeekDate(1)} 09:00`, end: `${getWeekDate(1)} 09:45`, title: 'Ingliz tili', class: 'subject-english' },
-    { start: `${getWeekDate(1)} 10:00`, end: `${getWeekDate(1)} 10:45`, title: 'Biologiya', class: 'subject-biology' },
-    { start: `${getWeekDate(1)} 11:00`, end: `${getWeekDate(1)} 11:45`, title: 'Fizika', class: 'subject-physics' },
-    { start: `${getWeekDate(1)} 14:00`, end: `${getWeekDate(1)} 14:45`, title: 'Tarix', class: 'subject-history' },
-    
-    // Chorshanba (2)
-    { start: `${getWeekDate(2)} 08:00`, end: `${getWeekDate(2)} 08:45`, title: 'Matematika', class: 'subject-math' },
-    { start: `${getWeekDate(2)} 10:00`, end: `${getWeekDate(2)} 10:45`, title: 'Biologiya', class: 'subject-biology' },
-    { start: `${getWeekDate(2)} 13:00`, end: `${getWeekDate(2)} 13:45`, title: 'Kimyo', class: 'subject-chemistry' },
-    
-    // Payshanba (3)
-    { start: `${getWeekDate(3)} 09:00`, end: `${getWeekDate(3)} 09:45`, title: 'Ingliz tili', class: 'subject-english' },
-    { start: `${getWeekDate(3)} 10:00`, end: `${getWeekDate(3)} 10:45`, title: 'Biologiya', class: 'subject-biology' },
-    { start: `${getWeekDate(3)} 11:00`, end: `${getWeekDate(3)} 11:45`, title: 'Fizika', class: 'subject-physics' },
-    { start: `${getWeekDate(3)} 14:00`, end: `${getWeekDate(3)} 14:45`, title: 'Tarix', class: 'subject-history' },
-    
-    // Juma (4)
-    { start: `${getWeekDate(4)} 08:00`, end: `${getWeekDate(4)} 08:45`, title: 'Matematika', class: 'subject-math' },
-    { start: `${getWeekDate(4)} 09:00`, end: `${getWeekDate(4)} 09:45`, title: 'Ingliz tili', class: 'subject-english' },
-    { start: `${getWeekDate(4)} 11:00`, end: `${getWeekDate(4)} 11:45`, title: 'Fizika', class: 'subject-physics' },
-    { start: `${getWeekDate(4)} 13:00`, end: `${getWeekDate(4)} 13:45`, title: 'Kimyo', class: 'subject-chemistry' },
-    { start: `${getWeekDate(4)} 14:00`, end: `${getWeekDate(4)} 14:45`, title: 'Tarix', class: 'subject-history' },
-])
-
-// Hafta/kun ko'rinishini almashtirish
-const viewButtons = [
-    { key: 'week', label: 'Hafta' },
-    { key: 'day', label: 'Kun' }
-]
-
-const handleEventClick = (event) => {
-    console.log('Dars tanlandi:', event)
-}
-</script>
-
 <template>
     <div class="big-calendar-container">
         <!-- Header -->
         <div class="calendar-header">
-            <h2 class="calendar-title">Dars jadvali ({{ classGroup }})</h2>
-            
+            <h2 class="calendar-title">Dars jadvali</h2>
+
             <div class="calendar-controls">
                 <span class="date-range">{{ dateRangeText }}</span>
                 <div class="view-switcher">
-                    <button 
-                        v-for="btn in viewButtons"
-                        :key="btn.key"
-                        :class="['view-btn', { active: currentView === btn.key }]"
-                        @click="currentView = btn.key"
-                    >
+                    <button v-for="btn in viewButtons" :key="btn.key"
+                        :class="['view-btn', { active: currentView === btn.key }]" @click="currentView = btn.key">
                         {{ btn.label }}
                     </button>
                 </div>
             </div>
         </div>
 
+        <!-- Loading state -->
+        <div v-if="isLoading" class="loading-state">
+            <div class="spinner"></div>
+            <span>Darslar yuklanmoqda...</span>
+        </div>
+
+        <!-- Error state -->
+        <div v-else-if="error" class="error-state">
+            <p>{{ error }}</p>
+            <button @click="fetchTeacherLessons" class="retry-btn">Qayta urinish</button>
+        </div>
+
         <!-- Calendar -->
-            <vue-cal
-            :events="scheduleData"
-            :view="currentView"
-            :views="['week', 'day']"
-            :time-from="7 * 60 + 30"
-            :time-to="16 * 60"
-            :time-step="60"
-            :time-cell-height="70"
-            :hide-weekends="true"
+        <vue-cal 
+            v-else
+            :events="scheduleEvents" 
+            :view="currentView" 
+            :views="['week', 'day']" 
+            :time-from="6 * 60"
+            :time-to="20 * 60" 
+            :time-step="60" 
+            :time-cell-height="60" 
+            :hide-weekends="false" 
             :twelve-hour="false"
-            :title-bar="false"
-            :views-bar="false"
-            :sticky-split-days="false"
+            :title-bar="false" 
+            :views-bar="false" 
+            :sticky-split-days="false" 
             locale="uz"
-            @event-click="handleEventClick"
+            @event-click="handleEventClick" 
         />
     </div>
 </template>
+
+<script setup>
+    import { ref } from 'vue'
+    import { VueCal } from 'vue-cal'
+    import 'vue-cal/style.css'
+    import { useTeacherSchedule } from '@/composables/useTeacherSchedule'
+    
+    
+    // Composable'dan ma'lumotlarni olish
+    const { 
+        scheduleEvents, 
+        dateRangeText, 
+        isLoading, 
+        error, 
+        fetchTeacherLessons 
+    } = useTeacherSchedule()
+    
+    const currentView = ref('week')
+    
+    // Hafta/kun ko'rinishini almashtirish
+    const viewButtons = [
+        { key: 'week', label: 'Hafta' },
+        { key: 'day', label: 'Kun' }
+    ]
+    
+    const handleEventClick = (event) => {
+        // Event click handler - kelajakda modal yoki boshqa funksionallik qo'shilishi mumkin
+        console.log('Dars tanlandi:', event)
+    }
+    </script>
 
 <style scoped>
 .big-calendar-container {
@@ -188,6 +142,51 @@ const handleEventClick = (event) => {
     font-weight: 500;
 }
 
+.loading-state,
+.error-state {
+    display: flex;
+    flex-direction: column;
+    align-items: center;
+    justify-content: center;
+    padding: 60px 20px;
+    text-align: center;
+}
+
+.spinner {
+    width: 40px;
+    height: 40px;
+    border: 4px solid #f3f4f6;
+    border-top-color: #3b82f6;
+    border-radius: 50%;
+    animation: spin 0.8s linear infinite;
+    margin-bottom: 16px;
+}
+
+@keyframes spin {
+    to { transform: rotate(360deg); }
+}
+
+.error-state p {
+    color: #ef4444;
+    margin-bottom: 16px;
+    font-size: 0.875rem;
+}
+
+.retry-btn {
+    padding: 8px 16px;
+    background: #3b82f6;
+    color: white;
+    border: none;
+    border-radius: 6px;
+    cursor: pointer;
+    font-size: 0.875rem;
+    transition: background 0.2s;
+}
+
+.retry-btn:hover {
+    background: #2563eb;
+}
+
 /* Vue Cal base styles */
 :deep(.vuecal) {
     border: none;
@@ -213,6 +212,22 @@ const handleEventClick = (event) => {
     z-index: 10;
 }
 
+:deep(.vuecal__no-event) {
+    display: none;
+}
+
+:deep(.vuecal__cell-events-count) {
+    display: none;
+}
+
+/* Faqat Yakshanbani yashirish (oxirgi kun) */
+:deep(.vuecal__weekday:last-child){
+    display: none !important;
+}
+:deep(.vuecal__cell.vuecal__cell--sun){
+    display: none !important;
+}
+
 :deep(.vuecal__heading) {
     font-weight: 500;
     color: #374151;
@@ -225,6 +240,7 @@ const handleEventClick = (event) => {
 :deep(.vuecal__body) {
     overflow: visible;
     margin-top: 0;
+    --vuecal-grid-columns: 6 !important;
 }
 
 :deep(.vuecal__bg) {
@@ -338,34 +354,24 @@ const handleEventClick = (event) => {
     border-left: 3px solid #ec4899 !important;
 }
 
-/* Hide unused elements */
-:deep(.vuecal__no-event) {
-    display: none;
-}
-
-:deep(.vuecal__cell-events-count) {
-    display: none;
-}
-
 /* Responsive */
 @media (max-width: 768px) {
     .calendar-header {
         flex-direction: column;
         align-items: flex-start;
     }
-    
+
     :deep(.vuecal__time-column) {
         width: 45px;
     }
-    
+
     :deep(.vuecal__event) {
         padding: 3px 5px;
         font-size: 0.6875rem;
     }
-    
+
     :deep(.vuecal__event-time) {
         display: none;
     }
 }
 </style>
-

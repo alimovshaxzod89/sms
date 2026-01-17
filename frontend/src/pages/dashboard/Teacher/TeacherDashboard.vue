@@ -2,7 +2,7 @@
   <div class="p-4 flex gap-4 flex-col xl:flex-row min-h-[calc(100vh-100px)]">
     <!-- Left -->
     <div class="w-full xl:w-2/3 h-full">
-      <BigCalendar class-group="4A" class="h-full" />
+      <BigCalendar class="h-full" />
     </div>
 
     <!-- RIGHT -->
@@ -18,7 +18,3 @@
   import EventCalendar from '@/components/ui/calendars/EventCalendar.vue';
   import BigCalendar from '@/components/ui/calendars/BigCalendar.vue';
 </script>
-
-<style scoped>
-
-</style>
