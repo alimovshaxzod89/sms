@@ -1,11 +1,20 @@
 # ============================================
 # SMS Project - Root .gitignore
 # ============================================
+# This file contains universal patterns for the entire monorepo.
+# Backend and Frontend have their own specific .gitignore files.
+# ============================================
+
+# ============================================
+# Dependencies
+# ============================================
+node_modules/
+
+# ============================================
 # IDE & Editor Files
 # ============================================
 .vscode/
 .idea/
-
 *.swp
 *.swo
 *~
@@ -14,12 +23,6 @@
 .settings/
 *.sublime-project
 *.sublime-workspace
-
-# ============================================
-# Personal/Local Ignore File
-# ============================================
-# Each developer can write their own ignore rules to .gitignore.local file
-.gitignore.local
 
 # ============================================
 # Operating System Files
@@ -39,7 +42,6 @@ Desktop.ini
 $RECYCLE.BIN/
 
 # Linux
-*~
 .directory
 .Trash-*
 
@@ -50,11 +52,9 @@ $RECYCLE.BIN/
 *.temp
 *.bak
 *.cache
-*.swp
-*.swo
 
 # ============================================
-# Logs (general)
+# Logs (Universal)
 # ============================================
 *.log
 npm-debug.log*
@@ -64,15 +64,8 @@ pnpm-debug.log*
 lerna-debug.log*
 
 # ============================================
-# Environment Variables (general)
+# Environment Variables (Universal)
 # ============================================
 .env
 .env.local
 .env.*.local
-
-# ============================================
-# Package Manager Lock Files (optional - if monorepo)
-# ============================================
-# package-lock.json
-# yarn.lock
-# pnpm-lock.yaml
