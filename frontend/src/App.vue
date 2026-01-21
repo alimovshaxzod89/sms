@@ -1,4 +1,4 @@
-<template>helo
+<template>
   <RouterView />
 </template>
 
